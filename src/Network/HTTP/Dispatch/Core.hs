@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.Core where
 
-import           Data.ByteString       as BS
-import           Data.ByteString.Char8 as C
-import           Data.ByteString.Lazy  as LBS
-import           Data.Maybe            (fromMaybe)
-import           Network.HTTP.Client   as Client
-import           Network.HTTP.Types    (RequestHeaders)
+import           Data.ByteString               as BS
+import           Data.ByteString.Char8         as C
+import           Data.ByteString.Lazy          as LBS
+import           Data.Maybe                    (fromMaybe)
+import           Network.HTTP.Client           as Client
+import           Network.HTTP.Dispatch.Headers as Dispatch
+import           Network.HTTP.Types            (RequestHeaders)
 
 data HTTPMethod =
     GET
@@ -25,17 +26,23 @@ data HTTPRequest = HTTPRequest {
   , _body    :: Maybe BS.ByteString
 } deriving ( Eq, Show )
 
+class Runnable a where
+  runRequest :: a -> IO (Response LBS.ByteString)
+
 toRequest :: HTTPRequest -> IO Client.Request
 toRequest (HTTPRequest url method headers body) = do
     initReq <- parseUrl url
-    let req = initReq { method = (packMethod method), requestHeaders = fromMaybe [] headers }
+    let req = initReq {
+            method = packMethod method
+          , requestHeaders = fromMaybe [] headers
+          }
     return req
 
-runRequest :: HTTPRequest -> IO (Response LBS.ByteString)
-runRequest httpRequest = do
-    manager <- newManager defaultManagerSettings
-    request <- toRequest httpRequest
-    httpLbs request manager
+instance Runnable HTTPRequest where
+    runRequest httpRequest = do
+        manager <- newManager defaultManagerSettings
+        request <- toRequest httpRequest
+        httpLbs request manager
 
 get :: String -> HTTPRequest
 get url = HTTPRequest url GET Nothing Nothing
