@@ -30,4 +30,3 @@ runRequest httpRequest = do
     request <- toRequest httpRequest
     response <- httpLbs request manager
     return response
-
