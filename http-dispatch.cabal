@@ -1,0 +1,35 @@
+name:                http-dispatch
+version:             0.1.0.0
+synopsis:            High level HTTP client for Haskell
+description:         Please see README.md
+homepage:            http://github.com/owainlewis/http-dispatch#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Owain Lewis
+maintainer:          owain@owainlewis.com
+copyright:           2016 Owain Lewis
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Network.HTTP.Dispatch.Core, Network.HTTP.Dispatch.Headers
+  build-depends:       base >= 4.7 && < 5
+                     , http-client
+                     , http-types
+                     , bytestring
+  default-language:    Haskell2010
+
+test-suite http-dispatch-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , http-dispatch
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/owainlewis/http-dispatch
