@@ -28,5 +28,5 @@ runRequest :: HTTPRequest -> IO (Response LBS.ByteString)
 runRequest httpRequest = do
     manager <- newManager defaultManagerSettings
     request <- toRequest httpRequest
-    response <- httpLbs request manager
-    return response
+    httpLbs request manager
+   
