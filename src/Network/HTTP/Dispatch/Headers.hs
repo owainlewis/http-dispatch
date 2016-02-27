@@ -1,4 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.Headers where
 
-basicAuth user pass = ()
+import           Network.HTTP.Types.Header
+
+acceptJSON :: Header
+acceptJSON = (hAccept, "application/json")
 
