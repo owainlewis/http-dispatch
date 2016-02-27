@@ -5,4 +5,3 @@ import           Network.HTTP.Types.Header
 
 acceptJSON :: Header
 acceptJSON = (hAccept, "application/json")
-
