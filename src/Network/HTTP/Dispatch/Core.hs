@@ -1,5 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Network.HTTP.Dispatch.Core where
+module Network.HTTP.Dispatch.Core 
+  ( HTTPMethod
+  , toRequest
+  , runRequest
+  , get
+  , getWithHeaders
+  ) where
 
 import           Data.ByteString               as BS
 import           Data.ByteString.Char8         as C
@@ -26,9 +32,6 @@ data HTTPRequest = HTTPRequest {
   , _body    :: Maybe BS.ByteString
 } deriving ( Eq, Show )
 
-class Runnable a where
-  runRequest :: a -> IO (Response LBS.ByteString)
-
 toRequest :: HTTPRequest -> IO Client.Request
 toRequest (HTTPRequest url method headers body) = do
     initReq <- parseUrl url
@@ -37,6 +40,9 @@ toRequest (HTTPRequest url method headers body) = do
           , requestHeaders = fromMaybe [] headers
           }
     return req
+
+class Runnable a where
+  runRequest :: a -> IO (Response LBS.ByteString)
 
 instance Runnable HTTPRequest where
     runRequest httpRequest = do
