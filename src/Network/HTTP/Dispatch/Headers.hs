@@ -6,12 +6,15 @@ import           Network.HTTP.Types.Header
 
 type MimeType = BS.ByteString
 
-data UserPass = UserPass { user :: String, pass :: String }
-  deriving ( Show )
+data UserPass = UserPass { 
+    user :: String
+  , pass :: String 
+} deriving ( Show )
 
-json, xml :: MimeType
-
+json :: MimeType
 json = "application/json"
+
+xml :: MimeType
 xml  = "application/xml"
 
 acceptJSON :: Header
@@ -19,6 +22,3 @@ acceptJSON = (hAccept, json)
 
 contentJSON :: Header
 contentJSON = (hContentType, json)
-
---basicAuth :: UserPass -> Header
---basicAuth = ()
