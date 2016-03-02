@@ -35,10 +35,11 @@ data HTTPRequest = HTTPRequest {
 toRequest :: HTTPRequest -> IO Client.Request
 toRequest (HTTPRequest url method headers body) = do
     initReq <- parseUrl url
-    let req = initReq {
-            method = packMethod method
-          , requestHeaders = fromMaybe [] headers
-          }
+    let req = initReq 
+    {
+      method = packMethod method
+    , requestHeaders = fromMaybe [] headers
+    }
     return req
 
 class Runnable a where
