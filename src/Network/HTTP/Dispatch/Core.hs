@@ -56,4 +56,3 @@ get url = HTTPRequest url GET Nothing Nothing
 
 getWithHeaders :: String -> RequestHeaders -> HTTPRequest
 getWithHeaders url headers = HTTPRequest url GET (Just headers) Nothing
-
