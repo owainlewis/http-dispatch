@@ -12,20 +12,19 @@ runRequest :: HTTPRequest -> IO HTTPResponse
 
 ## Constructing a request
 
+You can either construct HTTP requests manually (method, url, headers body)
+
 ```haskell
 getGithub :: HTTPRequest
 getGithub = HTTPRequest GET "https://github.com" Nothing Nothing
 
 response :: IO HTTPResponse
 response = runRequest getGithub
-
 ```
 
-## Getting Started
+or you can use the helper functions for a nicer DSL
 
-```haskell
-import Network.HTTP.Dispatch(runRequest, simpleGET)
-
-let response = runRequest $ simpleGET "http://owainlewis.com"
-
+```haskelll
+runRequest $ get "https://github.com"
 ```
+
