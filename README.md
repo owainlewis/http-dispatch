@@ -10,6 +10,17 @@ There are only two types (HTTPRequest and HTTPResponse)
 runRequest :: HTTPRequest -> IO HTTPResponse
 ```
 
+## Constructing a request
+
+```haskell
+getGithub :: HTTPRequest
+getGithub = HTTPRequest GET "https://github.com" Nothing Nothing
+
+response :: IO HTTPResponse
+response = runRequest getGithub
+
+```
+
 ## Getting Started
 
 ```haskell
