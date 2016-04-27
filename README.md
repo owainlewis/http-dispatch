@@ -24,7 +24,7 @@ response = runRequest getGithub
 
 or you can use the helper functions for a nicer DSL
 
-```haskelll
+```haskell
 runRequest $ get "https://github.com"
 ```
 
