@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.Core
   ( HTTPMethod
@@ -8,18 +8,17 @@ module Network.HTTP.Dispatch.Core
   , getWithHeaders
   ) where
 
+import qualified Data.Aeson                    as Aeson
 import qualified Data.ByteString               as BS
 import qualified Data.ByteString.Char8         as C
 import qualified Data.ByteString.Lazy          as LBS
+import           Data.List                     (isPrefixOf)
 import           Data.Maybe                    (fromMaybe)
+import           Data.String                   (IsString (..))
 import           Network.HTTP.Client           as Client
+import           Network.HTTP.Client.TLS
 import qualified Network.HTTP.Dispatch.Headers as Dispatch
-import           Network.HTTP.Types            (RequestHeaders)
-import qualified Data.Aeson as Aeson
-import Network.HTTP.Client.TLS
-import Data.String(IsString(..))
-import Data.List(isPrefixOf)
-import qualified Data.ByteString.Lazy.Char8 as LC
+import           Network.HTTP.Types            (RequestHeaders, Status (..))
 
 data HTTPMethod =
     GET
@@ -41,6 +40,11 @@ data HTTPRequest = HTTPRequest {
 data HTTPResponse = HTTPResponse {
     status :: Int
 } deriving ( Eq, Show )
+
+fromResponse :: Response body -> HTTPResponse
+fromResponse req =
+    let code = statusCode . responseStatus $ req in
+    HTTPResponse code
 
 toRequest :: HTTPRequest -> IO Client.Request
 toRequest (HTTPRequest method url headers body) = do
