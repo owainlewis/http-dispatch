@@ -2,7 +2,7 @@ module Network.HTTP.Dispatch.Types where
 
 import qualified Data.ByteString.Lazy as LBS
 
-data HTTPMethod =
+data HTTPRequestMethod =
     GET
   | PUT
   | POST
@@ -10,7 +10,7 @@ data HTTPMethod =
   | DELETE deriving ( Eq, Show )
 
 data HTTPRequest = HTTPRequest {
-    _method  :: HTTPMethod
+    _method  :: HTTPRequestMethod
   , _url     :: String
   , _headers :: Maybe [(String, String)]
   , _body    :: Maybe LBS.ByteString
