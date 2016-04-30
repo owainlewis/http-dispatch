@@ -10,9 +10,13 @@ data HTTPRequestMethod =
   | DELETE deriving ( Eq, Show )
 
 data HTTPRequest = HTTPRequest {
+   -- A HTTP request method e.g GET POST etc
     _method  :: HTTPRequestMethod
+  -- A HTTP request URL    
   , _url     :: String
+  -- Optional HTTP headers
   , _headers :: Maybe [(String, String)]
+  -- An optional request body
   , _body    :: Maybe LBS.ByteString
 } deriving ( Eq, Show )
 
