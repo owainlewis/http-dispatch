@@ -25,13 +25,10 @@ import           Network.HTTP.Dispatch.Types (HTTPRequest (..),
 import           Network.HTTP.Types          (RequestHeaders, Status (..))
 
 type Url = String
-type Hdrs = [(String, String)]
-type Payload = LBS.ByteString
 
-fromResponse :: Response body -> HTTPResponse
-fromResponse req =
-    let code = statusCode . responseStatus $ req in
-    HTTPResponse code
+type Hdrs = [(String, String)]
+
+type Payload = LBS.ByteString
 
 -- Transforms a dispatch request into a low level http-client request
 --
