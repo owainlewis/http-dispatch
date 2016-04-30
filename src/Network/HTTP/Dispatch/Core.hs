@@ -49,6 +49,13 @@ getManagerForUrl url =
     if ("https" `isPrefixOf` url) then newManager tlsManagerSettings
                                   else newManager defaultManagerSettings
 
+toResponse :: Client.Response a -> HTTPResponse
+toResponse resp =
+    let rStatus = statusCode . responseStatus $ resp
+        rHdrs = responseHeaders resp
+    in
+    HTTPResponse { status = rStatus }
+
 class Runnable a where
   -- Run a HTTP request and return the response
     runRequest :: a -> IO (Response LBS.ByteString)

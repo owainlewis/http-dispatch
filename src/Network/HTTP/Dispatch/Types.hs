@@ -12,7 +12,7 @@ data HTTPRequestMethod =
 data HTTPRequest = HTTPRequest {
    -- A HTTP request method e.g GET POST etc
     _method  :: HTTPRequestMethod
-  -- A HTTP request URL    
+  -- A HTTP request URL
   , _url     :: String
   -- Optional HTTP headers
   , _headers :: Maybe [(String, String)]
@@ -23,3 +23,6 @@ data HTTPRequest = HTTPRequest {
 data HTTPResponse = HTTPResponse {
     status :: Int
 } deriving ( Eq, Show )
+
+withHeader :: HTTPRequest -> (String, String) -> HTTPRequest
+withHeader req header = req { _headers = fmap (header :) (_headers req) }
