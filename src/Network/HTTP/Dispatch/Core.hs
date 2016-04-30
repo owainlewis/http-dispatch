@@ -33,13 +33,16 @@ data HTTPRequestMethod =
   | PATCH
   | DELETE deriving ( Eq, Show )
 
-packMethod :: HTTPRequestMethod -> C.ByteString
+packMethod :: HTTPRequestMethod -> BS.ByteString
 packMethod = C.pack . show
+
+toHeader :: (IsString t, IsString t1) => (String, String) -> (t, t1)
+toHeader (k,v) = (fromString k, fromString v)
 
 data HTTPRequest = HTTPRequest {
     _method  :: HTTPRequestMethod
   , _url     :: String
-  , _headers :: Maybe RequestHeaders
+  , _headers :: Maybe [(String, String)]
   , _body    :: Maybe LBS.ByteString
 } deriving ( Eq, Show )
 
@@ -59,13 +62,13 @@ toRequest (HTTPRequest method url headers body) = do
           Just lbs ->
             initReq
             { method = packMethod method
-            , requestHeaders = fromMaybe [] headers
+            , requestHeaders = map toHeader (fromMaybe [] headers)
             , requestBody = RequestBodyLBS lbs
             }
           Nothing ->
             initReq
             { method = packMethod method
-            , requestHeaders = fromMaybe [] headers
+            , requestHeaders = map toHeader (fromMaybe [] headers)
             }
     return req
 
@@ -99,22 +102,22 @@ instance Runnable HTTPRequest where
 get :: String -> HTTPRequest
 get url = HTTPRequest GET url Nothing Nothing
 
-getWithHeaders :: String -> RequestHeaders -> HTTPRequest
+getWithHeaders :: String -> [(String, String)] -> HTTPRequest
 getWithHeaders url headers = HTTPRequest GET url (Just headers) Nothing
 
 post :: String -> LBS.ByteString -> HTTPRequest
 post url body = HTTPRequest POST url Nothing (pure body)
 
-postWithHeaders :: String -> RequestHeaders -> LBS.ByteString -> HTTPRequest
+postWithHeaders :: String -> [(String, String)] -> LBS.ByteString -> HTTPRequest
 postWithHeaders url headers body = HTTPRequest POST url (pure headers) (pure body)
 
 postAeson :: Aeson.ToJSON a => String -> a -> HTTPRequest
 postAeson url body = post url (Aeson.encode body)
 
-postAesonWithHeaders :: Aeson.ToJSON a => String -> RequestHeaders -> a -> HTTPRequest
+postAesonWithHeaders :: Aeson.ToJSON a => String -> [(String, String)] -> a -> HTTPRequest
 postAesonWithHeaders url headers body = postWithHeaders url headers (Aeson.encode body)
 
 --- Testing
 
 destination :: String
-destination = "http://requestb.in/uu5547uu"
+destination = "http://requestb.in/1ejhwuf1"

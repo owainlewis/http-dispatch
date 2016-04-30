@@ -6,11 +6,6 @@ import           Network.HTTP.Types.Header
 
 type MimeType = BS.ByteString
 
-data UserPass = UserPass { 
-    user :: String
-  , pass :: String 
-} deriving ( Show )
-
 json :: MimeType
 json = "application/json"
 
