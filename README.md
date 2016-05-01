@@ -33,12 +33,42 @@ runRequest $ simpleGet "https://github.com"
 
 ## Examples
 
+### Simple requests
+
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+module Network.HTTP.Dispatch.Examples.Simple where
+
+import           Control.Applicative         ((<$>))
+import           Network.HTTP.Dispatch.Core
+import           Network.HTTP.Dispatch.Types
+
+-- Making a simple GET request
+
+getReq :: IO HTTPResponse
+getReq = runRequest (simpleGet "http://owainlewis.com")
+
+--- Get the status code from a response
+status :: IO Int
+status = do
+  resp <- runRequest $ simpleGet "http://owainlewis.com"
+  return (respStatus resp)
+
+-- Making a simple POST request
+
+postReq = runRequest $ postString "http://requestb.in/x8cnvfx8" headers "Hello, World!"
+    where headers = [ ("Content-Type", "application/json") ]
+```
+
+### Posting Aeson
+
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.Examples.Aeson where
 
 import           Data.Aeson
-import           Network.HTTP.Dispatch.Core (HTTPRequest, postAeson, runRequest)
+import           Network.HTTP.Dispatch.Core  (postAeson, runRequest)
+import           Network.HTTP.Dispatch.Types
 
 data User = User { firstName :: String
                  , lastName  :: String
@@ -51,10 +81,11 @@ instance ToJSON User where
                                           ]
 
 -- Create a POST request with the request body as JSON
-examplePostRequest :: HTTPRequest
-examplePostRequest = postAeson "http://requestb.in/shxmxvsh" [] (User "Jack" "Dorsey" 30)
+request :: HTTPRequest
+request = postAeson "http://requestb.in/shxmxvsh" headers body
+    where headers = [("Content-Type", "application/json")]
+          body = User "Jack" "Dorsey" 30
 
--- Run the request
--- runRequest examplePostRequest
-
+response :: IO HTTPResponse
+response = runRequest request
 ```

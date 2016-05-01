@@ -23,6 +23,7 @@ library
                      , http-types
                      , bytestring
                      , aeson
+                     , case-insensitive
   default-language:    Haskell2010
 
 test-suite http-dispatch-test

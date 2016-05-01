@@ -9,16 +9,7 @@ data HTTPRequestMethod =
   | PATCH
   | DELETE deriving ( Eq, Show )
 
-data Header = Header {
-    headerName  :: String
-  , headerValue :: String
-} deriving ( Eq, Show )
-
-headerFromTuple :: (String, String) -> Header
-headerFromTuple (k,v) = Header k v
-
-tupleFromHeader :: Header -> (String, String)
-tupleFromHeader (Header k v) = (k,v)
+type Header = (String, String)
 
 data HTTPRequest = HTTPRequest {
    -- A HTTP request method e.g GET POST etc
@@ -51,7 +42,7 @@ withHeaders req headers = req { reqHeaders = headers }
 
 dropHeaderWithKey :: HTTPRequest -> String -> HTTPRequest
 dropHeaderWithKey req@(HTTPRequest _ _ hdrs _) headerKey =
-  let filteredHeaders = filter (\h -> (headerName h) /= headerKey) hdrs in
+  let filteredHeaders = filter (\(k,v) -> k /= headerKey) hdrs in
       withHeaders req filteredHeaders
 
 withBody :: HTTPRequest -> LBS.ByteString -> HTTPRequest

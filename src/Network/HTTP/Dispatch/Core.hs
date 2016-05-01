@@ -5,6 +5,7 @@ module Network.HTTP.Dispatch.Core
   , get
   , simpleGet
   , post
+  , postString
   , postAeson
   , put
   , patch
@@ -14,6 +15,8 @@ module Network.HTTP.Dispatch.Core
 import qualified Data.Aeson                  as Aeson (ToJSON, encode)
 import qualified Data.ByteString.Char8       as C
 import qualified Data.ByteString.Lazy        as LBS
+import qualified Data.ByteString.Lazy.Char8  as LBSC
+import qualified Data.CaseInsensitive        as CI
 import           Data.List                   (isPrefixOf)
 import           Data.String                 (fromString)
 import           Network.HTTP.Client         as Client
@@ -30,7 +33,7 @@ type Url = String
 toRequest :: HTTPRequest -> IO Client.Request
 toRequest (HTTPRequest method url headers body) = do
     initReq <- parseUrl url
-    let hdrs = map (\(Header k v) -> (fromString k, fromString v)) headers
+    let hdrs = map (\(k, v) -> (fromString k, fromString v)) headers
         req = initReq
               { method = C.pack . show $ method
               , requestHeaders = hdrs
@@ -50,7 +53,10 @@ toResponse resp =
         rHdrs = responseHeaders resp
         rBody = responseBody resp
     in
-    HTTPResponse rStatus [] rBody
+    HTTPResponse rStatus (map (\(k,v) ->
+                                let hk = C.unpack . CI.original $ k
+                                    hv = C.unpack v in
+                                (hk, hv)) rHdrs) rBody
 
 class Runnable a where
   -- Run a HTTP request and return the response
@@ -59,10 +65,12 @@ class Runnable a where
     runRequestWithSettings :: a -> ManagerSettings -> IO HTTPResponse
 
 instance Runnable HTTPRequest where
+
     runRequest httpRequest = do
         manager <- getManagerForUrl (reqUrl httpRequest)
         request <- toRequest httpRequest
         httpLbs request manager >>= return . toResponse
+
     runRequestWithSettings httpRequest settings = do
         manager <- newManager settings
         request <- toRequest httpRequest
@@ -76,9 +84,15 @@ get url headers = HTTPRequest GET url headers Nothing
 simpleGet :: Url -> HTTPRequest
 simpleGet url = get url []
 
+-- Post request with a lazy bytestring payload
 post :: Url -> [Header] -> LBS.ByteString -> HTTPRequest
 post url headers body = HTTPRequest POST url headers (pure body)
 
+-- Post request with a string payload
+postString :: String -> [Header] -> String -> HTTPRequest
+postString url headers body = HTTPRequest POST url headers (pure . LBSC.pack $ body)
+
+-- Post request where the payload is some type that has a ToJSON instance defined
 postAeson :: Aeson.ToJSON a => Url -> [Header] -> a -> HTTPRequest
 postAeson url headers body = post url headers (Aeson.encode body)
 
