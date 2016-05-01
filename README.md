@@ -12,12 +12,15 @@ runRequest :: HTTPRequest -> IO HTTPResponse
 
 ## Constructing a request
 
-You can either construct HTTP requests manually (method, url, headers body)
+You can construct HTTP requests manually (method, url, headers body)
 
 ```haskell
-getGithub :: HTTPRequest
-getGithub = HTTPRequest GET "https://github.com" Nothing Nothing
 
+-- Build a HTTP request
+getGithub :: HTTPRequest
+getGithub = HTTPRequest GET "https://github.com" [] Nothing
+
+-- Run the request and return a response
 response :: IO HTTPResponse
 response = runRequest getGithub
 ```
@@ -25,7 +28,7 @@ response = runRequest getGithub
 or you can use the helper functions for a nicer DSL
 
 ```haskell
-runRequest $ get "https://github.com"
+runRequest $ simpleGet "https://github.com"
 ```
 
 ## Examples
@@ -49,7 +52,7 @@ instance ToJSON User where
 
 -- Create a POST request with the request body as JSON
 examplePostRequest :: HTTPRequest
-examplePostRequest = postAeson "http://requestb.in/shxmxvsh" (User "Jack" "Dorsey" 30)
+examplePostRequest = postAeson "http://requestb.in/shxmxvsh" [] (User "Jack" "Dorsey" 30)
 
 -- Run the request
 -- runRequest examplePostRequest
