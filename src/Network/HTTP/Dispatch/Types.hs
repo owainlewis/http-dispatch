@@ -9,20 +9,53 @@ data HTTPRequestMethod =
   | PATCH
   | DELETE deriving ( Eq, Show )
 
+data Header = Header {
+    headerName  :: String
+  , headerValue :: String
+} deriving ( Eq, Show )
+
+headerFromTuple :: (String, String) -> Header
+headerFromTuple (k,v) = Header k v
+
+tupleFromHeader :: Header -> (String, String)
+tupleFromHeader (Header k v) = (k,v)
+
 data HTTPRequest = HTTPRequest {
    -- A HTTP request method e.g GET POST etc
-    _method  :: HTTPRequestMethod
+    reqMethod  :: HTTPRequestMethod
   -- A HTTP request URL
-  , _url     :: String
+  , reqUrl     :: String
   -- Optional HTTP headers
-  , _headers :: Maybe [(String, String)]
+  , reqHeaders :: [Header]
   -- An optional request body
-  , _body    :: Maybe LBS.ByteString
+  , reqBody    :: Maybe LBS.ByteString
 } deriving ( Eq, Show )
 
 data HTTPResponse = HTTPResponse {
-    status :: Int
+    -- The response code
+    respStatus  :: Int
+    -- The response headers
+  , respHeaders :: [Header]
+    -- The response body
+  , respBody    :: LBS.ByteString
 } deriving ( Eq, Show )
 
-withHeader :: HTTPRequest -> (String, String) -> HTTPRequest
-withHeader req header = req { _headers = fmap (header :) (_headers req) }
+-- Helper methods
+---------------------------------------------------------------------------------------------
+
+withHeader :: HTTPRequest -> Header -> HTTPRequest
+withHeader req header = req { reqHeaders = header : (reqHeaders req) }
+
+withHeaders :: HTTPRequest -> [Header] -> HTTPRequest
+withHeaders req headers = req { reqHeaders = headers }
+
+dropHeaderWithKey :: HTTPRequest -> String -> HTTPRequest
+dropHeaderWithKey req@(HTTPRequest _ _ hdrs _) headerKey =
+  let filteredHeaders = filter (\h -> (headerName h) /= headerKey) hdrs in
+      withHeaders req filteredHeaders
+
+withBody :: HTTPRequest -> LBS.ByteString -> HTTPRequest
+withBody req body = req { reqBody = pure body }
+
+withMethod :: HTTPRequest -> HTTPRequestMethod -> HTTPRequest
+withMethod req method = req { reqMethod = method }
