@@ -10,12 +10,35 @@ There are only two types (HTTPRequest and HTTPResponse)
 runRequest :: HTTPRequest -> IO HTTPResponse
 ```
 
+## Motivation
+
+There are a couple of really good HTTP clients for Haskell but none of them felt particularly intuative. 
+This library strips back everything to be as simple as possible. It will transparently support HTTPS and has a very
+consistent DSL for making requests.
+
+There are only two types. A HTTPRequest and a HTTPResponse. You can turn a HTTPRequest into a HTTPResponse by calling
+"runRequest" on it. That's all there is to know about this library. Some utility functions are provided to make 
+constructing requests easier but it's nothing more than sugar for creating types.
+
+```haskell
+data HTTPRequest = HTTPRequest {
+   -- A HTTP request method e.g GET POST etc
+    reqMethod  :: HTTPRequestMethod
+  -- A HTTP request URL
+  , reqUrl     :: String
+  -- Optional HTTP headers
+  , reqHeaders :: [Header]
+  -- An optional request body
+  , reqBody    :: Maybe LBS.ByteString
+} deriving ( Eq, Show )
+
+```
+
 ## Constructing a request
 
 You can construct HTTP requests manually (method, url, headers body)
 
 ```haskell
-
 -- Build a HTTP request
 getGithub :: HTTPRequest
 getGithub = HTTPRequest GET "https://github.com" [] Nothing
