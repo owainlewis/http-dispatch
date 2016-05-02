@@ -4,7 +4,6 @@ module Network.HTTP.Dispatch.Request
   , runRequest
   ) where
 
-import qualified Control.Exception           as E
 import qualified Data.ByteString.Char8       as C
 import qualified Data.ByteString.Lazy        as LBS
 import qualified Data.CaseInsensitive        as CI
@@ -54,9 +53,6 @@ class Runnable a where
     runRequest :: a -> IO HTTPResponse
     -- Run a HTTP request with custom settings (proxy, https etc) and return the response
     runRequestWithSettings :: a -> ManagerSettings -> IO HTTPResponse
-
-handleMyException :: HttpException -> IO HTTPResponse
-handleMyException (StatusCodeException s hdrs cj) = return $ HTTPResponse (statusCode s) [] ""
 
 instance Runnable HTTPRequest where
     runRequest httpRequest = do
