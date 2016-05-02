@@ -75,9 +75,7 @@ response = runRequest req
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.Examples.Simple where
 
-import           Control.Applicative         ((<$>))
 import           Network.HTTP.Dispatch.Core
-import           Network.HTTP.Dispatch.Types
 
 -- Making a simple GET request
 
@@ -104,8 +102,7 @@ postReq = runRequest $ postString "http://requestb.in/x8cnvfx8" headers "Hello, 
 module Network.HTTP.Dispatch.Examples.Aeson where
 
 import           Data.Aeson
-import           Network.HTTP.Dispatch.Core  (postAeson, runRequest)
-import           Network.HTTP.Dispatch.Types
+import           Network.HTTP.Dispatch.Core
 
 data User = User { firstName :: String
                  , lastName  :: String
