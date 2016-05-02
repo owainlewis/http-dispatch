@@ -10,6 +10,14 @@ There are only two types (HTTPRequest and HTTPResponse)
 runRequest :: HTTPRequest -> IO HTTPResponse
 ```
 
+### Differences from http-client
+
+* Easier to use (IMO)
+* Higher level API
+* No exceptions thrown on non 200 status codes
+* Supports TLS out of the box
+* Headers are just tuples (String, String) so no need to deal with case insensitive byte strings
+
 ## Motivation
 
 There are a couple of really good HTTP clients for Haskell but none of them felt particularly intuative. 
