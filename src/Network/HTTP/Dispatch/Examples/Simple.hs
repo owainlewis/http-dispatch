@@ -15,6 +15,6 @@ status = do
   return (respStatus resp)
 
 -- Making a simple POST request
-
+postReq :: IO HTTPResponse
 postReq = runRequest $ postString "http://requestb.in/x8cnvfx8" headers "Hello, World!"
     where headers = [ ("Content-Type", "application/json") ]
