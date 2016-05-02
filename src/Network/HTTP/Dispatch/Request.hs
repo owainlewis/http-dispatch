@@ -2,12 +2,15 @@
 module Network.HTTP.Dispatch.Request
   ( toRequest
   , runRequest
+  , compileParams
+  , withQueryParams
   ) where
 
 import qualified Data.ByteString.Char8       as C
 import qualified Data.ByteString.Lazy        as LBS
 import qualified Data.CaseInsensitive        as CI
 import           Data.List                   (isPrefixOf)
+import           Data.List                   (intersperse)
 import           Data.String                 (fromString)
 import           Network.HTTP.Client         as Client
 import           Network.HTTP.Client.TLS
@@ -47,6 +50,18 @@ toResponse resp =
                                 let hk = C.unpack . CI.original $ k
                                     hv = C.unpack v in
                                 (hk, hv)) rHdrs) rBody
+
+compileParams :: [(String, String)] -> String
+compileParams params = "?" ++ kweryParams
+     where parts = map (\(k,v) -> mconcat [k, "=", v]) params
+           kweryParams = mconcat $ Data.List.intersperse "&" parts
+
+withQueryParams :: HTTPRequest -> [(String, String)] -> HTTPRequest
+withQueryParams req params = req { reqUrl =
+                                       let x = reqUrl req
+                                           y = compileParams params
+                                       in x ++ y
+                                 }
 
 class Runnable a where
   -- Run a HTTP request and return the response
