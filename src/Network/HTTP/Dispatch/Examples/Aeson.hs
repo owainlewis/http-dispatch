@@ -2,8 +2,7 @@
 module Network.HTTP.Dispatch.Examples.Aeson where
 
 import           Data.Aeson
-import           Network.HTTP.Dispatch.Core  (postAeson, runRequest)
-import           Network.HTTP.Dispatch.Types
+import           Network.HTTP.Dispatch.Core
 
 data User = User { firstName :: String
                  , lastName  :: String
