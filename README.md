@@ -60,8 +60,11 @@ response = runRequest getGithub
 or you can use the helper functions for a nicer DSL
 
 ```haskell
+req :: HTTPRequest
+req = simpleGet "https://github.com"
+
 response :: IO HTTPResponse
-response = runRequest $ simpleGet "https://github.com"
+response = runRequest req
 ```
 
 ## Examples
