@@ -2,7 +2,7 @@
 
 A high level Haskell HTTP client with a friendly and consistent API.
 
-This library builds upon the http-client library.
+This library builds upon the http-client library, providing an (IMO) easier and more intuative API
 
 There are only two types (HTTPRequest and HTTPResponse)
 
