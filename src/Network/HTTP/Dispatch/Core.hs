@@ -59,7 +59,7 @@ toResponse resp =
                                 (hk, hv)) rHdrs) rBody
 
 class Runnable a where
-  -- Run a HTTP request and return the response
+    -- Run a HTTP request and return the response
     runRequest :: a -> IO HTTPResponse
     -- Run a HTTP request with custom settings (proxy, https etc) and return the response
     runRequestWithSettings :: a -> ManagerSettings -> IO HTTPResponse
