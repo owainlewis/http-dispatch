@@ -1,5 +1,5 @@
 name:                http-dispatch
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            High level HTTP client for Haskell
 description:         Please see README.md
 homepage:            http://github.com/owainlewis/http-dispatch#readme
@@ -8,7 +8,7 @@ license-file:        LICENSE
 author:              Owain Lewis
 maintainer:          owain@owainlewis.com
 copyright:           2016 Owain Lewis
-category:            Web
+category:            Network
 build-type:          Simple
 cabal-version:       >=1.10
 
@@ -17,6 +17,7 @@ library
   exposed-modules:     Network.HTTP.Dispatch.Core
                      , Network.HTTP.Dispatch.Headers
                      , Network.HTTP.Dispatch.Types
+                     , Network.HTTP.Dispatch.Request
   build-depends:       base >= 4.7 && < 5
                      , http-client
                      , http-client-tls
