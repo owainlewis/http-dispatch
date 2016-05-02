@@ -1,5 +1,5 @@
 name:                http-dispatch
-version:             0.2.0.0
+version:             0.3.0.0
 synopsis:            High level HTTP client for Haskell
 description:         Please see README.md
 homepage:            http://github.com/owainlewis/http-dispatch#readme
@@ -15,7 +15,6 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Network.HTTP.Dispatch.Core
-                     , Network.HTTP.Dispatch.Headers
                      , Network.HTTP.Dispatch.Types
                      , Network.HTTP.Dispatch.Request
   build-depends:       base >= 4.7 && < 5

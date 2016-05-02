@@ -31,7 +31,7 @@ data HTTPResponse = HTTPResponse {
   , respBody    :: LBS.ByteString
 } deriving ( Eq, Show )
 
--- Helper methods
+-- Update requests (additive)
 ---------------------------------------------------------------------------------------------
 
 withHeader :: HTTPRequest -> Header -> HTTPRequest
@@ -40,13 +40,15 @@ withHeader req header = req { reqHeaders = header : (reqHeaders req) }
 withHeaders :: HTTPRequest -> [Header] -> HTTPRequest
 withHeaders req headers = req { reqHeaders = headers }
 
-dropHeaderWithKey :: HTTPRequest -> String -> HTTPRequest
-dropHeaderWithKey req@(HTTPRequest _ _ hdrs _) headerKey =
-  let filteredHeaders = filter (\(k,v) -> k /= headerKey) hdrs in
-      withHeaders req filteredHeaders
-
 withBody :: HTTPRequest -> LBS.ByteString -> HTTPRequest
 withBody req body = req { reqBody = pure body }
 
 withMethod :: HTTPRequest -> HTTPRequestMethod -> HTTPRequest
 withMethod req method = req { reqMethod = method }
+
+---------------------------------------------------------------------------------------------
+
+dropHeaderWithKey :: HTTPRequest -> String -> HTTPRequest
+dropHeaderWithKey req@(HTTPRequest _ _ hdrs _) headerKey =
+  let filteredHeaders = filter (\(k,v) -> k /= headerKey) hdrs in
+      withHeaders req filteredHeaders
