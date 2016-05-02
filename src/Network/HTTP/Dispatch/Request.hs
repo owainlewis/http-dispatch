@@ -4,6 +4,7 @@ module Network.HTTP.Dispatch.Request
   , runRequest
   ) where
 
+import qualified Control.Exception           as E
 import qualified Data.ByteString.Char8       as C
 import qualified Data.ByteString.Lazy        as LBS
 import qualified Data.CaseInsensitive        as CI
@@ -25,6 +26,8 @@ toRequest (HTTPRequest method url headers body) = do
         req = initReq
               { method = C.pack . show $ method
               , requestHeaders = hdrs
+                -- Make sure no exceptions are thrown so that we can handle non 200 codes
+              , checkStatus = \_ _ _ -> Nothing
               }
     case body of
       Just lbs -> return $ req { requestBody = RequestBodyLBS lbs }
@@ -51,6 +54,9 @@ class Runnable a where
     runRequest :: a -> IO HTTPResponse
     -- Run a HTTP request with custom settings (proxy, https etc) and return the response
     runRequestWithSettings :: a -> ManagerSettings -> IO HTTPResponse
+
+handleMyException :: HttpException -> IO HTTPResponse
+handleMyException (StatusCodeException s hdrs cj) = return $ HTTPResponse (statusCode s) [] ""
 
 instance Runnable HTTPRequest where
     runRequest httpRequest = do
