@@ -2,6 +2,7 @@
 module Network.HTTP.Dispatch.Core
        ( HTTPRequest(..)
        , HTTPResponse(..)
+       , HTTPRequestMethod(..)
        , runRequest
        , get
        , post
