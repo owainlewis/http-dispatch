@@ -116,9 +116,8 @@ instance ToJSON User where
 
 -- Create a POST request with the request body as JSON
 request :: HTTPRequest
-request = postAeson "http://requestb.in/shxmxvsh" headers body
+request = postAeson "http://requestb.in/shxmxvsh" headers (User "Jack" "Dorsey" 30)
     where headers = [("Content-Type", "application/json")]
-          body = User "Jack" "Dorsey" 30
 
 response :: IO HTTPResponse
 response = runRequest request
