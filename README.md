@@ -17,6 +17,7 @@ runRequest :: HTTPRequest -> IO HTTPResponse
 * No exceptions thrown on non 200 status codes
 * Supports TLS out of the box
 * Headers are just tuples (String, String) so no need to deal with case insensitive byte strings
+* Automatic Aeson serialization for POST requests
 
 ## Motivation
 
