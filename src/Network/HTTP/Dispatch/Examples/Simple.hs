@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.Examples.Simple where
 
-import           Control.Applicative         ((<$>))
+import           Control.Applicative        ((<$>))
 import           Network.HTTP.Dispatch.Core
-import           Network.HTTP.Dispatch.Types
 
 -- Making a simple GET request
 
