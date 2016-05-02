@@ -60,7 +60,8 @@ response = runRequest getGithub
 or you can use the helper functions for a nicer DSL
 
 ```haskell
-runRequest $ simpleGet "https://github.com"
+response :: IO HTTPResponse
+response = runRequest $ simpleGet "https://github.com"
 ```
 
 ## Examples
@@ -88,6 +89,7 @@ status = do
 
 -- Making a simple POST request
 
+postReq :: IO HTTPResponse
 postReq = runRequest $ postString "http://requestb.in/x8cnvfx8" headers "Hello, World!"
     where headers = [ ("Content-Type", "application/json") ]
 ```
