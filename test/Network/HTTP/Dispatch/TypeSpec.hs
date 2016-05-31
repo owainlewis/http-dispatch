@@ -22,8 +22,8 @@ spec = do
 
     describe "withHeader" $ do
         it "should add a header to a request" $ do
-            let actual = withHeader getRequest contentTypeHeader
-                expected = HTTPRequest GET "http://google.com" [contentTypeHeader] Nothing
+            let actual = withHeader getRequest ("Content-Type", "application/json")
+                expected = HTTPRequest GET "http://google.com" [("Content-Type", "application/json")] Nothing
             actual `shouldBe` expected
 
         it "should add headers to a request" $ do
