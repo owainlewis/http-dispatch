@@ -9,9 +9,6 @@ main = hspec spec
 getRequest :: HTTPRequest
 getRequest = HTTPRequest GET "http://google.com" [] Nothing
 
-contentTypeHeader = ("Content-Type", "application/json")
-authHeader = ("Authorization", "Bearer 123")
-
 spec :: Spec
 spec = do
     describe "withMethod" $ do
@@ -27,6 +24,8 @@ spec = do
             actual `shouldBe` expected
 
         it "should add headers to a request" $ do
-            let actual = withHeaders getRequest [contentTypeHeader, authHeader]
+            let contentTypeHeader = ("Content-Type", "application/json")
+                authHeader = ("Authorization", "Bearer 123")
+                actual = withHeaders getRequest [contentTypeHeader, authHeader]
                 expected = HTTPRequest GET "http://google.com" [contentTypeHeader, authHeader] Nothing
             actual `shouldBe` expected
