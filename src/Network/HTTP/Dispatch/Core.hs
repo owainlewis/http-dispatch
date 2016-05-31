@@ -9,44 +9,46 @@ module Network.HTTP.Dispatch.Core
        , patch
        , delete
        , put
-       , simpleGet
-       , postString
-       , postAeson
        ) where
 
-import qualified Data.Aeson                    as Aeson (ToJSON, encode)
 import qualified Data.ByteString.Lazy          as LBS
-import qualified Data.ByteString.Lazy.Char8    as LBSC
 import           Network.HTTP.Dispatch.Request
 import           Network.HTTP.Dispatch.Types
 
-type Url = String
-
+-----------------------------------------------------------------------------------
 -- Request API
+-----------------------------------------------------------------------------------
 
-get :: Url -> [Header] -> HTTPRequest
-get url headers = HTTPRequest GET url headers Nothing
+type Url = String
+type Headers = [Header]
+type Body = LBS.ByteString
 
-simpleGet :: Url -> HTTPRequest
-simpleGet url = HTTPRequest GET url [] Nothing
+get :: Url -> HTTPRequest
+get url = HTTPRequest GET url [] Nothing
 
--- Post request with a lazy bytestring payload
-post :: Url -> [Header] -> LBS.ByteString -> HTTPRequest
-post url headers body = HTTPRequest POST url headers (pure body)
+getWithHeaders :: String -> [Header] -> HTTPRequest
+getWithHeaders url headers = HTTPRequest GET url headers Nothing
 
--- Post request with a string payload
-postString :: String -> [Header] -> String -> HTTPRequest
-postString url headers body = HTTPRequest POST url headers (pure . LBSC.pack $ body)
+post :: Url -> Body -> HTTPRequest
+post url body = postWithHeaders url [] body
 
--- Post request where the payload is some type that has a ToJSON instance defined
-postAeson :: Aeson.ToJSON a => Url -> [Header] -> a -> HTTPRequest
-postAeson url headers body = HTTPRequest POST url headers (pure $ Aeson.encode body)
+postWithHeaders :: Url -> Headers -> Body -> HTTPRequest
+postWithHeaders url headers body = HTTPRequest POST url headers (Just body)
 
-put :: String -> [Header] -> LBS.ByteString -> HTTPRequest
-put url headers body = HTTPRequest PUT url headers (pure body)
+put :: Url -> Body -> HTTPRequest
+put url body = putWithHeaders url [] body
 
-delete :: String -> [Header] -> Maybe LBS.ByteString -> HTTPRequest
-delete url headers = HTTPRequest DELETE url headers
+putWithHeaders :: Url -> Headers -> Body -> HTTPRequest
+putWithHeaders url headers body = HTTPRequest PUT url headers (Just body)
 
-patch :: String -> [Header] -> LBS.ByteString -> HTTPRequest
-patch url headers body = HTTPRequest PATCH url headers (pure body)
+patch :: Url -> Body -> HTTPRequest
+patch url body = patchWithHeaders url [] body
+
+patchWithHeaders :: Url -> Headers -> Body -> HTTPRequest
+patchWithHeaders url headers body = HTTPRequest PATCH url headers (Just body)
+
+delete :: Url -> HTTPRequest
+delete url = deleteWithHeaders url []
+
+deleteWithHeaders :: Url -> Headers -> HTTPRequest
+deleteWithHeaders url headers = HTTPRequest DELETE url headers Nothing

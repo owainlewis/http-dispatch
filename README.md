@@ -21,12 +21,12 @@ runRequest :: HTTPRequest -> IO HTTPResponse
 
 ## Motivation
 
-There are a couple of really good HTTP clients for Haskell but none of them felt particularly intuative. 
+There are a couple of really good HTTP clients for Haskell but none of them felt particularly intuative.
 This library strips back everything to be as simple as possible. It will transparently support HTTPS and has a very
 consistent DSL for making requests.
 
 There are only two types. A HTTPRequest and a HTTPResponse. You can turn a HTTPRequest into a HTTPResponse by calling
-"runRequest" on it. That's all there is to know about this library. Some utility functions are provided to make 
+"runRequest" on it. That's all there is to know about this library. Some utility functions are provided to make
 constructing requests easier but it's nothing more than sugar for creating types.
 
 ```haskell
@@ -57,16 +57,6 @@ response :: IO HTTPResponse
 response = runRequest getGithub
 ```
 
-or you can use the helper functions for a nicer DSL
-
-```haskell
-req :: HTTPRequest
-req = simpleGet "https://github.com"
-
-response :: IO HTTPResponse
-response = runRequest req
-```
-
 ## Examples
 
 ### Simple requests
@@ -76,49 +66,22 @@ response = runRequest req
 module Network.HTTP.Dispatch.Examples.Simple where
 
 import           Network.HTTP.Dispatch.Core
+import           Network.HTTP.Dispatch.Extra(fromString)
 
--- Making a simple GET request
+-- Making a simple GET request is as easy as
 
-getReq :: IO HTTPResponse
-getReq = runRequest (simpleGet "http://owainlewis.com")
+response :: IO HTTPResponse
+response = runRequest (get "http://owainlewis.com")
 
 --- Get the status code from a response
 status :: IO Int
 status = do
-  resp <- runRequest $ simpleGet "http://owainlewis.com"
+  resp <- runRequest $ get "http://owainlewis.com"
   return (respStatus resp)
 
 -- Making a simple POST request
-
+-- Note that the HTTP body is a Lazy ByteString. The fromString is a helper method to convert for you
 postReq :: IO HTTPResponse
-postReq = runRequest $ postString "http://requestb.in/x8cnvfx8" headers "Hello, World!"
-    where headers = [ ("Content-Type", "application/json") ]
-```
-
-### Posting Aeson
-
-```haskell
-{-# LANGUAGE OverloadedStrings #-}
-module Network.HTTP.Dispatch.Examples.Aeson where
-
-import           Data.Aeson
-import           Network.HTTP.Dispatch.Core
-
-data User = User { firstName :: String
-                 , lastName  :: String
-                 , age       :: Int } deriving ( Show )
-
-instance ToJSON User where
-    toJSON (User first last age) = object [ "first_name" .= first
-                                          , "last_name"  .= last
-                                          , "age" .= age
-                                          ]
-
--- Create a POST request with the request body as JSON
-request :: HTTPRequest
-request = postAeson "http://requestb.in/shxmxvsh" headers (User "Jack" "Dorsey" 30)
+postReq = runRequest $ postSWithHeaders "http://requestb.in/x8cnvfx8" headers (Just (fromString "Hello, World!"))
     where headers = [("Content-Type", "application/json")]
-
-response :: IO HTTPResponse
-response = runRequest request
 ```

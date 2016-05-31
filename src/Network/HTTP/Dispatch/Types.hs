@@ -1,6 +1,9 @@
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 module Network.HTTP.Dispatch.Types where
 
-import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Lazy       as LBS
+import qualified Data.ByteString.Lazy.Char8 as LBSC
 
 data HTTPRequestMethod =
     GET
@@ -10,6 +13,12 @@ data HTTPRequestMethod =
   | DELETE deriving ( Eq, Show )
 
 type Header = (String, String)
+
+class Packable a where
+    pack :: a -> LBS.ByteString
+
+instance Packable String where
+    pack = LBSC.pack
 
 data HTTPRequest = HTTPRequest {
    -- A HTTP request method e.g GET POST etc

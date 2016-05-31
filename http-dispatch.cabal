@@ -22,7 +22,6 @@ library
                      , http-client-tls
                      , http-types
                      , bytestring
-                     , aeson
                      , case-insensitive
   default-language:    Haskell2010
 
