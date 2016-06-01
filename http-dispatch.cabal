@@ -17,6 +17,7 @@ library
   exposed-modules:     Network.HTTP.Dispatch.Core
                      , Network.HTTP.Dispatch.Types
                      , Network.HTTP.Dispatch.Request
+                     , Network.HTTP.Dispatch.Extra
   build-depends:       base >= 4.7 && < 5
                      , http-client
                      , http-client-tls

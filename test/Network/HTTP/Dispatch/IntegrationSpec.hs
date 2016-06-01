@@ -11,5 +11,4 @@ spec = do
     describe "making GET requests" $ do
         it "returns HTTP 200" $ do
             response <- runRequest $ get "https://httpbin.org/get"
-            print response
             (respStatus response) `shouldBe` 200

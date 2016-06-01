@@ -5,10 +5,15 @@ module Network.HTTP.Dispatch.Core
        , HTTPRequestMethod(..)
        , runRequest
        , get
+       , getWithHeaders
        , post
-       , patch
-       , delete
+       , postWithHeaders
        , put
+       , putWithHeaders
+       , patch
+       , patchWithHeaders
+       , delete
+       , deleteWithHeaders
        ) where
 
 import qualified Data.ByteString.Lazy          as LBS
