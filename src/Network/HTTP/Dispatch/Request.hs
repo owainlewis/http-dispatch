@@ -35,7 +35,7 @@ toRequest (HTTPRequest method url headers body) = do
       Just lbs -> 
         return $ req { requestBody = RequestBodyLBS lbs }
       Nothing -> 
-        return $ req
+        return req
 
 getManagerForUrl :: String -> IO Manager
 getManagerForUrl url =
