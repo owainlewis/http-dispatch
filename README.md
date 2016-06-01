@@ -82,7 +82,7 @@ status = do
 -- Making a simple POST request
 -- Note that the HTTP body is a Lazy ByteString. The fromString is a helper method to convert for you
 postReq :: IO HTTPResponse
-postReq = runRequest $ postWithHeaders url headers (Just body)
+postReq = runRequest $ postWithHeaders url headers body
     where url = "http://requestb.in/x8cnvfx8"
           headers = [("Content-Type", "application/json")]
           body = fromString "Hello, World!"
