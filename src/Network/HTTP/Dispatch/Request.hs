@@ -32,8 +32,10 @@ toRequest (HTTPRequest method url headers body) = do
               , checkStatus = \_ _ _ -> Nothing
               }
     case body of
-      Just lbs -> return $ req { requestBody = RequestBodyLBS lbs }
-      Nothing -> return $ req
+      Just lbs -> 
+        return $ req { requestBody = RequestBodyLBS lbs }
+      Nothing -> 
+        return $ req
 
 getManagerForUrl :: String -> IO Manager
 getManagerForUrl url =
