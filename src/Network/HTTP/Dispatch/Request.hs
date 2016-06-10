@@ -2,7 +2,6 @@
 module Network.HTTP.Dispatch.Request
   ( toRequest
   , runRequest
-  , compileParams
   , withQueryParams
   ) where
 
