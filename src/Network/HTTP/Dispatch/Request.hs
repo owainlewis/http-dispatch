@@ -2,14 +2,17 @@
 module Network.HTTP.Dispatch.Request
   ( toRequest
   , runRequest
+  , compileParams
   , withQueryParams
   ) where
 
+import qualified Data.ByteString             as S
 import qualified Data.ByteString.Char8       as C
 import qualified Data.ByteString.Lazy        as LBS
 import qualified Data.CaseInsensitive        as CI
 import           Data.List                   (isPrefixOf)
 import           Data.List                   (intersperse)
+import           Data.Monoid                 ((<>))
 import           Data.String                 (fromString)
 import           Network.HTTP.Client         as Client
 import           Network.HTTP.Client.TLS
@@ -18,22 +21,22 @@ import           Network.HTTP.Dispatch.Types (HTTPRequest (..),
                                               HTTPResponse (..), Header (..))
 import           Network.HTTP.Types          (RequestHeaders, Status (..))
 
--- Transforms a dispatch request into a low level http-client request
+-- | Transforms a dispatch request into a low level http-client request
 --
 toRequest :: HTTPRequest -> IO Client.Request
 toRequest (HTTPRequest method url headers body) = do
-    initReq <- parseUrl url
-    let hdrs = map (\(k, v) -> (fromString k, fromString v)) headers
+    initReq <- parseUrl (C.unpack url)
+    let hdrs = map (\(k, v) -> (k, v)) headers
         req = initReq
               { method = C.pack . show $ method
-              , requestHeaders = hdrs
+--              , requestHeaders = hdrs
                 -- Make sure no exceptions are thrown so that we can handle non 200 codes
               , checkStatus = \_ _ _ -> Nothing
               }
     case body of
-      Just lbs -> 
-        return $ req { requestBody = RequestBodyLBS lbs }
-      Nothing -> 
+      Just lbs ->
+        return $ req { requestBody = RequestBodyBS lbs }
+      Nothing ->
         return req
 
 getManagerForUrl :: String -> IO Manager
@@ -48,20 +51,20 @@ toResponse resp =
         rBody = responseBody resp
     in
     HTTPResponse rStatus (map (\(k,v) ->
-                                let hk = C.unpack . CI.original $ k
-                                    hv = C.unpack v in
+                                let hk = CI.original $ k
+                                    hv = v in
                                 (hk, hv)) rHdrs) rBody
 
-compileParams :: [(String, String)] -> String
-compileParams params = "?" ++ kweryParams
+compileParams :: [(S.ByteString, S.ByteString)] -> S.ByteString
+compileParams params = "?" <> kweryParams
      where parts = map (\(k,v) -> mconcat [k, "=", v]) params
            kweryParams = mconcat $ Data.List.intersperse "&" parts
 
-withQueryParams :: HTTPRequest -> [(String, String)] -> HTTPRequest
+withQueryParams :: HTTPRequest -> [(S.ByteString, S.ByteString)] -> HTTPRequest
 withQueryParams req params = req { reqUrl =
                                        let x = reqUrl req
                                            y = compileParams params
-                                       in x ++ y
+                                       in x <> y
                                  }
 
 class Runnable a where
@@ -72,7 +75,7 @@ class Runnable a where
 
 instance Runnable HTTPRequest where
     runRequest httpRequest = do
-        manager <- getManagerForUrl (reqUrl httpRequest)
+        manager <- getManagerForUrl (C.unpack $ reqUrl httpRequest)
         request <- toRequest httpRequest
         httpLbs request manager >>= return . toResponse
 

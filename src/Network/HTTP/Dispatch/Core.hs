@@ -16,7 +16,7 @@ module Network.HTTP.Dispatch.Core
        , deleteWithHeaders
        ) where
 
-import qualified Data.ByteString.Lazy          as LBS
+import qualified Data.ByteString               as S
 import           Network.HTTP.Dispatch.Request
 import           Network.HTTP.Dispatch.Types
 
@@ -25,8 +25,10 @@ import           Network.HTTP.Dispatch.Types
 -----------------------------------------------------------------------------------
 
 type Url = String
+
 type Headers = [Header]
-type Body = LBS.ByteString
+
+type Body = S.ByteString
 
 get :: Url -> HTTPRequest
 get url = HTTPRequest GET url [] Nothing
