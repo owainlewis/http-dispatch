@@ -1,7 +1,7 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.CoreSpec where
 
 import           Network.HTTP.Dispatch.Core
-import           Network.HTTP.Dispatch.Extra (fromString)
 import           Test.Hspec
 
 main :: IO ()
@@ -21,6 +21,6 @@ spec = do
 
     describe "building POST requests" $ do
         it "constructs a POST request" $ do
-            let actual = post "http://google.com" (fromString "OK")
-                expected = HTTPRequest POST "http://google.com" [] (Just $ fromString "OK")
+            let actual = post "http://google.com" "OK"
+                expected = HTTPRequest POST "http://google.com" [] (Just "OK")
             actual `shouldBe` expected

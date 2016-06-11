@@ -3,6 +3,7 @@ module Network.HTTP.Dispatch.Core
        ( HTTPRequest(..)
        , HTTPResponse(..)
        , HTTPRequestMethod(..)
+         -- Core request helpers
        , runRequest
        , get
        , getWithHeaders
@@ -14,19 +15,19 @@ module Network.HTTP.Dispatch.Core
        , patchWithHeaders
        , delete
        , deleteWithHeaders
+         -- Extra
+       , withQueryParams
        ) where
 
-import qualified Data.ByteString.Lazy          as LBS
-import           Network.HTTP.Dispatch.Request
+import qualified Data.ByteString                        as S
+import           Network.HTTP.Dispatch.Internal.Request
 import           Network.HTTP.Dispatch.Types
+
+import           Data.List                              (intersperse)
 
 -----------------------------------------------------------------------------------
 -- Request API
 -----------------------------------------------------------------------------------
-
-type Url = String
-type Headers = [Header]
-type Body = LBS.ByteString
 
 get :: Url -> HTTPRequest
 get url = HTTPRequest GET url [] Nothing
@@ -57,3 +58,17 @@ delete url = deleteWithHeaders url []
 
 deleteWithHeaders :: Url -> Headers -> HTTPRequest
 deleteWithHeaders url headers = HTTPRequest DELETE url headers Nothing
+
+-- Util
+
+compileParams :: [(String, String)] -> String
+compileParams params = "?" ++ kweryParams
+     where parts = map (\(k,v) -> mconcat [k, "=", v]) params
+           kweryParams = mconcat (intersperse "&" parts)
+
+withQueryParams :: HTTPRequest -> [(String, String)] -> HTTPRequest
+withQueryParams req params = req { reqUrl =
+                                       let x = reqUrl req
+                                           y = compileParams params
+                                       in x ++ y
+                                 }

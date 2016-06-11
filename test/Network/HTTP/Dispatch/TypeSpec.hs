@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.TypeSpec where
 
 import           Network.HTTP.Dispatch.Types
