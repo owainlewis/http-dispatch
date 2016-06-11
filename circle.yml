@@ -1,12 +1,15 @@
-machine:
-  ghc:
-    version: 7.10.3
 dependencies:
   cache_directories:
-    - ".cabal-sandbox"
+    - "~/.stack"
   pre:
-    - cabal sandbox init
-    - cabal update
+    - wget -q -O- https://s3.amazonaws.com/download.fpcomplete.com/ubuntu/fpco.key | sudo apt-key add -
+    - echo 'deb http://download.fpcomplete.com/ubuntu/precise stable main'|sudo tee /etc/apt/sources.list.d/fpco.list
+    - sudo apt-get update && sudo apt-get install stack -y
   override:
-    - cabal install    
-    
+    - stack setup
+    - stack build
+    - stack build --test --only-dependencies
+
+test:
+  override:
+    - stack test
