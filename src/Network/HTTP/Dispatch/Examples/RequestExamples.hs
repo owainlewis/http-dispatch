@@ -15,7 +15,7 @@ getRequestExample = runRequest $ get "https://httpbin.org/get"
 responseCodeExample :: IO Int
 responseCodeExample = do
   -- Run the request
-  response <- getRequestExample
+  response <- runRequest (get "https://httpbin.org/get")
   -- Get the response code
   let code = respStatus response
   -- Return it
