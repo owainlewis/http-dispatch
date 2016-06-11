@@ -1,18 +1,21 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.Extra
-       ( fromString
+       ( contentType
        ) where
 
-import qualified Data.ByteString.Lazy       as LBS
-import qualified Data.ByteString.Lazy.Char8 as LBSC
+import qualified Data.ByteString        as S
+import qualified Data.ByteString.Base64 as B64
+import           Data.Monoid            ((<>))
 
------------------------------------------------------------------------------------
--- Extra methods for friendly API (experimental)
------------------------------------------------------------------------------------
-
--- Can be used to generate a HTTP request without needing to prepare Lazy ByteStrings.
+-- | Headers
 --
--- Example:
---   HTTPRequest POST "http://api.mysite.com" [("Content-Type", "application/json")] (fromString "HELLO WORLD")
-fromString :: String -> LBS.ByteString
-fromString = LBSC.pack
+contentType :: S.ByteString -> (S.ByteString, S.ByteString)
+contentType ct = ("Content-Type", ct)
+
+-- | Basic authentication header helper
+--
+basicAuth :: S.ByteString -> S.ByteString -> (S.ByteString, S.ByteString)
+basicAuth user pass = ("Authorization", auth)
+    where auth = "Basic: " <> userPassEncoded
+          userPassEncoded = B64.encode $ user <> ":" <> pass
