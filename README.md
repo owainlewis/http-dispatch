@@ -35,12 +35,11 @@ runRequest :: HTTPRequest -> IO HTTPResponse
 
 ### Differences from http-client
 
-* Easier to use (IMO)
+* Simple DSL (only two types HTTPRequest and HTTPResponse)
 * Higher level API
 * No exceptions thrown on non 200 status codes
 * Supports TLS out of the box
-* Headers are just tuples (String, String) so no need to deal with case insensitive byte strings
-* Automatic Aeson serialization for POST requests
+* Headers are just tuples (ByteString, ByteString) so no need to deal with case insensitive byte strings
 
 ## Motivation
 
@@ -138,3 +137,5 @@ requestWithBasicAuthExample = withHeader request (Headers.basicAuth "user" "pass
     where request = get "http://httpbin.org/get"
 
 ```
+
+If you have any questions comments or feedback let me know <owain@owainlewis.com>
