@@ -2,6 +2,8 @@
 
 > This is the HTTP library I wish I had when first learning Haskell
 
+[![CircleCI](https://circleci.com/gh/owainlewis/http-dispatch.svg?style=svg)](https://circleci.com/gh/owainlewis/http-dispatch)
+
 A high level Haskell HTTP client with a friendly and consistent API.
 
 This library builds upon the http-client library, providing an (IMO) easier and more intuative API
