@@ -6,10 +6,6 @@ This library builds upon the http-client library, providing an (IMO) easier and 
 
 There are only two types (HTTPRequest and HTTPResponse)
 
-```haskell
-runRequest :: HTTPRequest -> IO HTTPResponse
-```
-
 ## Constructing a request
 
 You can construct HTTP requests manually (method, url, headers body)
@@ -25,6 +21,12 @@ Or using a slightly prettier DSL. This DSL does nothing more than create the und
 -- Build a HTTP request and run it
 response :: IO HTTPResponse
 response = runRequest $ get "https://github.com"
+```
+
+The runRequest function just takes a HTTPRequest and turns it into a HTTPResponse
+
+```haskell
+runRequest :: HTTPRequest -> IO HTTPResponse
 ```
 
 ### Differences from http-client
