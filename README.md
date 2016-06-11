@@ -112,7 +112,7 @@ responseCodeExample = do
   -- Get the response code
   let code = respStatus response
   -- Return it
-  return $ code
+  return code
 
 -- | Construct a GET request with added HTTP headers
 --
