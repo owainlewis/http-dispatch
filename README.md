@@ -54,7 +54,7 @@ response = runRequest $ HTTPRequest GET "https://github.com" [] Nothing
 
 Or using a slightly prettier DSL. This DSL does nothing more than create the underlying HTTPRequest type above.
 
-```
+```haskell
 -- Build a HTTP request and run it
 response :: IO HTTPResponse
 response = runRequest $ get "https://github.com"
