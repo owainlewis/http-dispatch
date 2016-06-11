@@ -1,5 +1,7 @@
 # HTTP Dispatch
 
+> This is the HTTP library I wish I had when first learning Haskell
+
 A high level Haskell HTTP client with a friendly and consistent API.
 
 This library builds upon the http-client library, providing an (IMO) easier and more intuative API
@@ -40,7 +42,8 @@ runRequest :: HTTPRequest -> IO HTTPResponse
 
 ## Motivation
 
-There are a couple of really good HTTP clients for Haskell but none of them felt particularly intuative.
+There are already a couple of really good HTTP clients for Haskell, but typically I'd need to go hunting through documentation just to do even the simplest thing. This is the HTTP library I wish I had when first learning Haskell.
+
 This library strips back everything to be as simple as possible. It will transparently support HTTPS and has a very
 consistent DSL for making requests.
 
