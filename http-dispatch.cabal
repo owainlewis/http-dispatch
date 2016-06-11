@@ -1,5 +1,5 @@
 name:                http-dispatch
-version:             0.3.0.0
+version:             0.5.0.0
 synopsis:            High level HTTP client for Haskell
 description:         Please see README.md
 homepage:            http://github.com/owainlewis/http-dispatch#readme
