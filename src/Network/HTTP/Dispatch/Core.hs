@@ -30,9 +30,21 @@ import           Data.List                              (intersperse)
 -- Request API
 -----------------------------------------------------------------------------------
 
+-- | Make a simple HTTP GET request
+--
+-- @
+-- get "http://google.com" =>
+-- HTTPRequest {reqMethod = GET, reqUrl = "http://google.com", reqHeaders = [], reqBody = Nothing}
+-- @
 get :: Url -> HTTPRequest
 get url = HTTPRequest GET url [] Nothing
 
+-- | Make a simple HTTP GET request containing some headers
+--
+-- @
+--   getWithHeaders "http://google.com" [header "Content-Type" "application/json"]
+--   HTTPRequest {reqMethod = GET, reqUrl = "http://google.com", reqHeaders = [("Content-Type","application/json")], reqBody = Nothing}
+-- @
 getWithHeaders :: String -> [Header] -> HTTPRequest
 getWithHeaders url headers = HTTPRequest GET url headers Nothing
 
@@ -60,16 +72,16 @@ delete url = deleteWithHeaders url []
 deleteWithHeaders :: Url -> Headers -> HTTPRequest
 deleteWithHeaders url headers = HTTPRequest DELETE url headers Nothing
 
--- Util
-
-compileParams :: [(String, String)] -> String
-compileParams params = "?" ++ kweryParams
-     where parts = map (\(k,v) -> mconcat [k, "=", v]) params
-           kweryParams = mconcat (intersperse "&" parts)
-
+-- | Add query params to a request URL
+--
+-- @
+--   withQueryParams (get "http://google.com") [("foo", "bar")] =>
+--   HTTPRequest {reqMethod = GET, reqUrl = "http://google.com?foo=bar", reqHeaders = [], reqBody = Nothing}
+-- @
 withQueryParams :: HTTPRequest -> [(String, String)] -> HTTPRequest
-withQueryParams req params = req { reqUrl =
-                                       let x = reqUrl req
-                                           y = compileParams params
-                                       in x ++ y
-                                 }
+withQueryParams req params = req { reqUrl = u ++ p }
+    where u = reqUrl req
+          p = compileParams params
+          compileParams params = "?" ++ kweryParams :: String
+            where parts = map (\(k,v) -> mconcat [k, "=", v]) params
+                  kweryParams = mconcat (intersperse "&" parts)

@@ -4,6 +4,7 @@ module Network.HTTP.Dispatch.Internal.Request
   , runRequest
   ) where
 
+import           Control.Applicative         ((<$>))
 import qualified Data.ByteString.Char8       as C
 import qualified Data.ByteString.Lazy        as LBS
 import qualified Data.CaseInsensitive        as CI
@@ -63,7 +64,7 @@ instance Runnable HTTPRequest where
     runRequest httpRequest = do
         manager <- getManagerForUrl (reqUrl httpRequest)
         request <- toRequest httpRequest
-        httpLbs request manager >>= return . toResponse
+        toResponse <$> httpLbs request manager
 
     runRequestWithSettings httpRequest settings = do
         manager <- newManager settings
