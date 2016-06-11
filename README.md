@@ -48,13 +48,16 @@ data HTTPRequest = HTTPRequest {
 You can construct HTTP requests manually (method, url, headers body)
 
 ```haskell
--- Build a HTTP request
-getGithub :: HTTPRequest
-getGithub = HTTPRequest GET "https://github.com" [] Nothing
-
--- Run the request and return a response
 response :: IO HTTPResponse
-response = runRequest getGithub
+response = runRequest $ HTTPRequest GET "https://github.com" [] Nothing
+```
+
+Or using a slightly prettier DSL. This DSL does nothing more than create the underlying HTTPRequest type above.
+
+```
+-- Build a HTTP request and run it
+response :: IO HTTPResponse
+response = runRequest $ get "https://github.com"
 ```
 
 ## Examples
