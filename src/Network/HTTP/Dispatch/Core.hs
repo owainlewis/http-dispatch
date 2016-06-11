@@ -20,6 +20,7 @@ module Network.HTTP.Dispatch.Core
        ) where
 
 import qualified Data.ByteString                        as S
+import           Data.Monoid                            (mconcat)
 import           Network.HTTP.Dispatch.Internal.Request
 import           Network.HTTP.Dispatch.Types
 
