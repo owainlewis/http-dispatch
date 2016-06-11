@@ -3,6 +3,7 @@ module Network.HTTP.Dispatch.Headers
        ( contentType
        , contentJSON
        , contentXML
+       , basicAuth
        ) where
 
 import qualified Data.ByteString             as S
