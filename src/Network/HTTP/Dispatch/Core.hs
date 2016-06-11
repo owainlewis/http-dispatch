@@ -26,10 +26,6 @@ import           Network.HTTP.Dispatch.Types
 
 import           Data.List                              (intersperse)
 
------------------------------------------------------------------------------------
--- Request API
------------------------------------------------------------------------------------
-
 -- | Make a simple HTTP GET request
 --
 -- @
@@ -39,7 +35,7 @@ import           Data.List                              (intersperse)
 get :: Url -> HTTPRequest
 get url = HTTPRequest GET url [] Nothing
 
--- | Make a simple HTTP GET request containing some headers
+-- | Make a simple HTTP GET request with headers
 --
 -- @
 --   getWithHeaders "http://google.com" [header "Content-Type" "application/json"]
@@ -48,9 +44,13 @@ get url = HTTPRequest GET url [] Nothing
 getWithHeaders :: String -> [Header] -> HTTPRequest
 getWithHeaders url headers = HTTPRequest GET url headers Nothing
 
+-- | Make a simple HTTP POST request
+--
 post :: Url -> Body -> HTTPRequest
 post url body = postWithHeaders url [] body
 
+-- | Make a HTTP POST request with headers
+--
 postWithHeaders :: Url -> Headers -> Body -> HTTPRequest
 postWithHeaders url headers body = HTTPRequest POST url headers (Just body)
 

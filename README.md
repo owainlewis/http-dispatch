@@ -42,14 +42,19 @@ runRequest :: HTTPRequest -> IO HTTPResponse
 
 ## Motivation
 
-There are already a couple of really good HTTP clients for Haskell, but typically I'd need to go hunting through documentation just to do even the simplest thing. This is the HTTP library I wish I had when first learning Haskell.
+There are already a couple of really good HTTP clients for Haskell, but typically I'd need to go hunting through documentation just to do even the simplest thing.
+This is the HTTP library I wish I had when first learning Haskell.
 
-This library strips back everything to be as simple as possible. It will transparently support HTTPS and has a very
-consistent DSL for making requests.
+This library strips back everything to be as simple as possible.
+It will transparently support HTTPS and has a very consistent DSL for making requests.
 
-There are only two types. A HTTPRequest and a HTTPResponse. You can turn a HTTPRequest into a HTTPResponse by calling
-"runRequest" on it. That's all there is to know about this library. Some utility functions are provided to make
-constructing requests easier but it's nothing more than sugar for creating types.
+There are only two types. A HTTPRequest and a HTTPResponse.
+That's all there is to know about this library.
+Some utility functions are provided to make constructing requests easier but it's nothing more than sugar for creating types.
+
+### HTTP Request
+
+You can turn a HTTPRequest into a HTTPResponse by calling "runRequest" on it.
 
 ```haskell
 data HTTPRequest = HTTPRequest {
@@ -60,38 +65,20 @@ data HTTPRequest = HTTPRequest {
   -- Optional HTTP headers
   , reqHeaders :: [Header]
   -- An optional request body
-  , reqBody    :: Maybe LBS.ByteString
+  , reqBody    :: Maybe S.ByteString
 } deriving ( Eq, Show )
-
 ```
 
-## Examples
-
-### Simple requests
+### HTTP Response
 
 ```haskell
-{-# LANGUAGE OverloadedStrings #-}
-module Network.HTTP.Dispatch.Examples.Simple where
+data HTTPResponse = HTTPResponse {
+    -- The response code
+    respStatus  :: Int
+    -- The response headers
+  , respHeaders :: [Header]
+    -- The response body
+  , respBody    :: LBS.ByteString
+} deriving ( Eq, Show )
 
-import           Network.HTTP.Dispatch.Core
-import           Network.HTTP.Dispatch.Extra(fromString)
-
--- Making a simple GET request is as easy as
-
-response :: IO HTTPResponse
-response = runRequest (get "http://owainlewis.com")
-
---- Get the status code from a response
-status :: IO Int
-status = do
-  resp <- runRequest $ get "http://owainlewis.com"
-  return (respStatus resp)
-
--- Making a simple POST request
--- Note that the HTTP body is a Lazy ByteString. The fromString is a helper method to convert for you
-postReq :: IO HTTPResponse
-postReq = runRequest $ postWithHeaders url headers body
-    where url = "http://requestb.in/x8cnvfx8"
-          headers = [("Content-Type", "application/json")]
-          body = fromString "Hello, World!"
 ```

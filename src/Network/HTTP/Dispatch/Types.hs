@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 module Network.HTTP.Dispatch.Types where
 
@@ -41,6 +42,7 @@ data HTTPResponse = HTTPResponse {
   , respBody    :: LBS.ByteString
 } deriving ( Eq, Show )
 
+-- | Helper function that contstructs HTTP headers from string values
 header :: String -> String -> Header
 header k v = (SC.pack k , SC.pack v)
 
