@@ -82,6 +82,6 @@ withQueryParams :: HTTPRequest -> [(String, String)] -> HTTPRequest
 withQueryParams req params = req { reqUrl = u ++ p }
     where u = reqUrl req
           p = compileParams params
-          compileParams params = "?" ++ kweryParams :: String
+          compileParams params = "?" ++ qParams :: String
             where parts = map (\(k,v) -> mconcat [k, "=", v]) params
-                  kweryParams = mconcat (intersperse "&" parts)
+                  qParams = mconcat (intersperse "&" parts)
