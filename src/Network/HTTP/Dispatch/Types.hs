@@ -51,7 +51,7 @@ withHeaders :: HTTPRequest -> [Header] -> HTTPRequest
 withHeaders req headers = req { reqHeaders = headers }
 
 withBody :: HTTPRequest -> S.ByteString -> HTTPRequest
-withBody req body = req { reqBody = pure body }
+withBody req body = req { reqBody = Just body }
 
 withMethod :: HTTPRequest -> HTTPRequestMethod -> HTTPRequest
 withMethod req method = req { reqMethod = method }
