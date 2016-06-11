@@ -69,4 +69,4 @@ instance Runnable HTTPRequest where
     runRequestWithSettings httpRequest settings = do
         manager <- newManager settings
         request <- toRequest httpRequest
-        httpLbs request manager >>= return . toResponse
+        toResponse <$> httpLbs request manager
