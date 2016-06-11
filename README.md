@@ -10,6 +10,23 @@ There are only two types (HTTPRequest and HTTPResponse)
 runRequest :: HTTPRequest -> IO HTTPResponse
 ```
 
+## Constructing a request
+
+You can construct HTTP requests manually (method, url, headers body)
+
+```haskell
+response :: IO HTTPResponse
+response = runRequest $ HTTPRequest GET "https://github.com" [] Nothing
+```
+
+Or using a slightly prettier DSL. This DSL does nothing more than create the underlying HTTPRequest type above.
+
+```haskell
+-- Build a HTTP request and run it
+response :: IO HTTPResponse
+response = runRequest $ get "https://github.com"
+```
+
 ### Differences from http-client
 
 * Easier to use (IMO)
@@ -41,23 +58,6 @@ data HTTPRequest = HTTPRequest {
   , reqBody    :: Maybe LBS.ByteString
 } deriving ( Eq, Show )
 
-```
-
-## Constructing a request
-
-You can construct HTTP requests manually (method, url, headers body)
-
-```haskell
-response :: IO HTTPResponse
-response = runRequest $ HTTPRequest GET "https://github.com" [] Nothing
-```
-
-Or using a slightly prettier DSL. This DSL does nothing more than create the underlying HTTPRequest type above.
-
-```haskell
--- Build a HTTP request and run it
-response :: IO HTTPResponse
-response = runRequest $ get "https://github.com"
 ```
 
 ## Examples
