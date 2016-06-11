@@ -14,7 +14,7 @@ You can construct HTTP requests manually (method, url, headers body)
 
 ```haskell
 response :: IO HTTPResponse
-response = runRequest $ HTTPRequest GET "https://github.com" [] Nothing
+response = runRequest (HTTPRequest GET "https://github.com" [] Nothing)
 ```
 
 Or using a slightly prettier DSL. This DSL does nothing more than create the underlying HTTPRequest type above.
@@ -22,7 +22,7 @@ Or using a slightly prettier DSL. This DSL does nothing more than create the und
 ```haskell
 -- Build a HTTP request and run it
 response :: IO HTTPResponse
-response = runRequest $ get "https://github.com"
+response = runRequest (get "https://github.com")
 ```
 
 The runRequest function just takes a HTTPRequest and turns it into a HTTPResponse
