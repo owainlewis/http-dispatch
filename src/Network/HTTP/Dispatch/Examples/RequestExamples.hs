@@ -2,7 +2,7 @@
 module Network.HTTP.Dispatch.Examples.RequestExamples where
 
 import           Network.HTTP.Dispatch.Core
-import           Network.HTTP.Dispatch.Headers as Headers
+import           Network.HTTP.Dispatch.Headers (basicAuth)
 import           Network.HTTP.Dispatch.Types
 
 -- | Make a simple GET request
