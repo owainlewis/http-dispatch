@@ -135,8 +135,8 @@ postRequestExample = post "https://httpbin.org/post" "Hello, World"
 --               }
 -- @
 requestWithBasicAuthExample :: HTTPRequest
-requestWithBasicAuthExample = withHeader request (Headers.basicAuth "user" "password")
-    where request = get "http://httpbin.org/get"
+requestWithBasicAuthExample =
+    withHeader (get "http://httpbin.org/get") (basicAuth "user" "password")
 
 ```
 
