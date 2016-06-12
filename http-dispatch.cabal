@@ -16,6 +16,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Network.HTTP.Dispatch.Core
                      , Network.HTTP.Dispatch.Types
+                     , Network.HTTP.Dispatch.Headers
                      , Network.HTTP.Dispatch.Internal.Request
   build-depends:       base >= 4.5 && < 5
                      , http-client
