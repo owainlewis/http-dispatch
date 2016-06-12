@@ -45,7 +45,7 @@ runRequest :: HTTPRequest -> IO HTTPResponse
 
 ## Motivation
 
-There are already a couple of really good HTTP clients for Haskell, but typically I'd need to go hunting through documentation just to do even the simplest thing.
+There are already a couple of really good HTTP clients for Haskell ([Wreq](http://www.serpentine.com/wreq/), [HTTP Client](https://github.com/snoyberg/http-client)), but typically I'd need to go hunting through documentation just to do even the simplest thing.
 This is the HTTP library I wish I had when first learning Haskell.
 
 This library strips back everything to be as simple as possible.
