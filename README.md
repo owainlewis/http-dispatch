@@ -4,7 +4,7 @@
 
 [![CircleCI](https://circleci.com/gh/owainlewis/http-dispatch.svg?style=svg)](https://circleci.com/gh/owainlewis/http-dispatch)
 
-Available on Hackage: https://hackage.haskell.org/package/http-dispatch-0.5.0.0
+Available on Hackage: https://hackage.haskell.org/package/http-dispatch-0.5.0.1
 
 A high level Haskell HTTP client with a friendly and consistent API.
 
