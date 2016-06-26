@@ -26,5 +26,5 @@ contentXML  = contentType "application/xml"
 -- | Helper to generate Basic authentication
 basicAuth :: S.ByteString -> S.ByteString -> Header
 basicAuth user pass = ("Authorization", auth)
-    where auth = "Basic: " <> userPassEncoded
+    where auth = "Basic " <> userPassEncoded
           userPassEncoded = B64.encode $ user <> ":" <> pass
