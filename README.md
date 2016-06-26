@@ -130,7 +130,7 @@ postRequestExample = post "https://httpbin.org/post" "Hello, World"
 --
 -- @ HTTPRequest { reqMethod = GET,
 --                 reqUrl = "http://httpbin.org/get",
---                 reqHeaders = [("Authorization","Basic: dXNlcjpwYXNzd29yZA==")],
+--                 reqHeaders = [("Authorization","Basic dXNlcjpwYXNzd29yZA==")],
 --                 reqBody = Nothing
 --               }
 -- @
