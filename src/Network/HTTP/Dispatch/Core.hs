@@ -3,7 +3,6 @@ module Network.HTTP.Dispatch.Core
        ( HTTPRequest(..)
        , HTTPResponse(..)
        , HTTPRequestMethod(..)
-         -- Core request helpers
        , runRequest
        , get
        , getWithHeaders
@@ -15,7 +14,6 @@ module Network.HTTP.Dispatch.Core
        , patchWithHeaders
        , delete
        , deleteWithHeaders
-         -- Extra
        , withQueryParams
        ) where
 
