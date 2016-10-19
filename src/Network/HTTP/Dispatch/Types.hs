@@ -18,6 +18,8 @@ data HTTPRequestMethod =
   | PUT
   | POST
   | PATCH
+  | HEAD
+  | OPTIONS
   | DELETE deriving ( Eq, Show )
 
 type Header = (S.ByteString, S.ByteString)
