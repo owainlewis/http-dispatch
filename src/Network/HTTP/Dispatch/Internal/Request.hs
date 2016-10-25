@@ -2,6 +2,7 @@
 module Network.HTTP.Dispatch.Internal.Request
   ( toRequest
   , runRequest
+  , Runnable
   ) where
 
 import           Control.Applicative         ((<$>))

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Network.HTTP.Dispatch.CoreSpec where
+module Network.HTTP.Dispatch.RequestSpec where
 
-import           Network.HTTP.Dispatch.Core
+import           Network.HTTP.Dispatch.Request
 import           Test.Hspec
 
 main :: IO ()

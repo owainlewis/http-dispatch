@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Network.HTTP.Dispatch.Builder
+module Network.HTTP.Dispatch.Api
   ( raw
   , get
   , post
@@ -9,7 +9,7 @@ module Network.HTTP.Dispatch.Builder
   ) where
 
 import qualified Data.ByteString                        as S
-import qualified Network.HTTP.Dispatch.Core             as Dispatch
+import qualified Network.HTTP.Dispatch.Request          as Dispatch
 import           Network.HTTP.Dispatch.Internal.Request (runRequest)
 import           Network.HTTP.Dispatch.Types
 
@@ -21,7 +21,7 @@ raw
   -> [Header]
   -> Maybe S.ByteString
   -> IO HTTPResponse
-raw method url headers body = runRequest $ Dispatch.raw method url headers body
+raw method url headers body = runRequest $ Dispatch.rawRequest method url headers body
 
 get
   :: String

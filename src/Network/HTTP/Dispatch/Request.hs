@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Network.HTTP.Dispatch.Core
+module Network.HTTP.Dispatch.Request
        ( HTTPRequest(..)
        , HTTPResponse(..)
        , HTTPRequestMethod(..)
@@ -22,6 +22,11 @@ import           Network.HTTP.Dispatch.Types
 import           Prelude                                hiding (head)
 
 import           Data.List                              (intersperse)
+
+-- | Given an HTTP request type, run the request and return the response
+--
+run :: HTTPRequest -> IO HTTPResponse
+run req = runRequest req
 
 -- | Make a raw HTTP request
 --

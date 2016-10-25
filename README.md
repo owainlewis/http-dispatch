@@ -7,10 +7,9 @@
 Available on Hackage: https://hackage.haskell.org/package/http-dispatch-0.5.0.2
 
 A high level Haskell HTTP client with a friendly and consistent API.
-
 This library builds upon the http-client library, providing an (IMO) easier and more intuative API
 
-There are only two types (HTTPRequest and HTTPResponse)
+*There are only two types (HTTPRequest and HTTPResponse). Everything else is sugar for constructing these types*
 
 ## Constructing a request
 
