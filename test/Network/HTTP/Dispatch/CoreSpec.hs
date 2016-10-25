@@ -11,16 +11,12 @@ spec :: Spec
 spec = do
     describe "building GET requests" $ do
         it "constructs a GET request" $ do
-            let actual = get "http://google.com"
+            let actual = getRequest "http://google.com" []
                 expected = HTTPRequest GET "http://google.com" [] Nothing
-            actual `shouldBe` expected
-        it "constructs a GET request with headers" $ do
-            let actual = getWithHeaders "http://google.com" [("Content-Type", "application/json")]
-                expected = HTTPRequest GET "http://google.com" [("Content-Type", "application/json")] Nothing
             actual `shouldBe` expected
 
     describe "building POST requests" $ do
         it "constructs a POST request" $ do
-            let actual = post "http://google.com" "OK"
+            let actual = postRequest "http://google.com" [] (Just "OK")
                 expected = HTTPRequest POST "http://google.com" [] (Just "OK")
             actual `shouldBe` expected

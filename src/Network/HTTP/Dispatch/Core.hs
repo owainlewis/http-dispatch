@@ -4,16 +4,14 @@ module Network.HTTP.Dispatch.Core
        , HTTPResponse(..)
        , HTTPRequestMethod(..)
        , runRequest
-       , get
-       , getWithHeaders
-       , post
-       , postWithHeaders
-       , put
-       , putWithHeaders
-       , patch
-       , patchWithHeaders
-       , delete
-       , deleteWithHeaders
+       , rawRequest
+       , getRequest
+       , postRequest
+       , putRequest
+       , patchRequest
+       , deleteRequest
+       , headRequest
+       , optionsRequest
        , withQueryParams
        ) where
 
@@ -21,27 +19,14 @@ import qualified Data.ByteString                        as S
 import           Data.Monoid                            (mconcat)
 import           Network.HTTP.Dispatch.Internal.Request
 import           Network.HTTP.Dispatch.Types
+import           Prelude                                hiding (head)
 
 import           Data.List                              (intersperse)
 
--- | Make a simple HTTP GET request
+-- | Make a raw HTTP request
 --
 -- @
--- get "http://google.com"
---
--- HTTPRequest { reqMethod = GET
---             , reqUrl = "http://google.com"
---             , reqHeaders = []
---             , reqBody = Nothing
---             }
--- @
-get :: Url -> HTTPRequest
-get url = HTTPRequest GET url [] Nothing
-
--- | Make a simple HTTP GET request with headers
---
--- @
---   getWithHeaders "http://google.com" [header "Content-Type" "application/json"]
+--   raw GET "http://google.com" [header "Content-Type" "application/json"] Nothing
 --
 --   HTTPRequest { reqMethod = GET
 --               , reqUrl = "http://google.com"
@@ -49,49 +34,52 @@ get url = HTTPRequest GET url [] Nothing
 --               , reqBody = Nothing
 --               }
 -- @
-getWithHeaders :: String -> [Header] -> HTTPRequest
-getWithHeaders url headers = HTTPRequest GET url headers Nothing
+rawRequest :: HTTPRequestMethod -> String -> [Header] -> Maybe S.ByteString -> HTTPRequest
+rawRequest method url headers body = HTTPRequest method url headers body
 
--- | Make a simple HTTP POST request
+-- | Make a simple HTTP GET request with headers
 --
+-- @
+--   getRequest "http://google.com" [header "Content-Type" "application/json"]
 --
-post :: Url -> Body -> HTTPRequest
-post url body = postWithHeaders url [] body
+--   HTTPRequest { reqMethod = GET
+--               , reqUrl = "http://google.com"
+--               , reqHeaders = [("Content-Type","application/json")]
+--               , reqBody = Nothing
+--               }
+-- @
+getRequest :: String -> [Header] -> HTTPRequest
+getRequest url headers = rawRequest GET url headers Nothing
 
 -- | Make a HTTP POST request with headers
 --
-postWithHeaders :: Url -> Headers -> Body -> HTTPRequest
-postWithHeaders url headers body = HTTPRequest POST url headers (Just body)
-
--- | Make a HTTP PUT request
---
-put :: Url -> Body -> HTTPRequest
-put url body = putWithHeaders url [] body
+postRequest :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
+postRequest url headers body = rawRequest POST url headers body
 
 -- | Make a HTTP PUT request with headers
 --
-putWithHeaders :: Url -> Headers -> Body -> HTTPRequest
-putWithHeaders url headers body = HTTPRequest PUT url headers (Just body)
-
--- | Make a HTTP PATCH request
---
-patch :: Url -> Body -> HTTPRequest
-patch url body = patchWithHeaders url [] body
+putRequest :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
+putRequest url headers body = rawRequest PUT url headers body
 
 -- | Make a HTTP PATCH request with headers
 --
-patchWithHeaders :: Url -> Headers -> Body -> HTTPRequest
-patchWithHeaders url headers body = HTTPRequest PATCH url headers (Just body)
-
--- | Make a HTTP DELETE request
---
-delete :: Url -> HTTPRequest
-delete url = deleteWithHeaders url []
+patchRequest :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
+patchRequest url headers body = HTTPRequest PATCH url headers body
 
 -- | Make a HTTP DELETE request with headers
 --
-deleteWithHeaders :: Url -> Headers -> HTTPRequest
-deleteWithHeaders url headers = HTTPRequest DELETE url headers Nothing
+deleteRequest :: Url -> Headers -> HTTPRequest
+deleteRequest url headers = rawRequest DELETE url headers Nothing
+
+-- | Make a HTTP OPTIONS request
+--
+optionsRequest :: Url -> [Header] -> HTTPRequest
+optionsRequest url headers = rawRequest OPTIONS url headers Nothing
+
+-- | Make a HTTP HEAD request
+--
+headRequest :: Url -> [Header] -> HTTPRequest
+headRequest url headers = rawRequest HEAD url headers Nothing
 
 -- | Add query params to a request URL
 --

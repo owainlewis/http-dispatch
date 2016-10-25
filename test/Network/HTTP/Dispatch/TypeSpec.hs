@@ -13,7 +13,7 @@ getRequest = HTTPRequest GET "http://google.com" [] Nothing
 spec :: Spec
 spec = do
     describe "withMethod" $ do
-        it "should add a header to a request" $ do
+        it "should transform request method" $ do
             let actual = withMethod getRequest POST
                 expected = HTTPRequest POST "http://google.com" [] Nothing
             actual `shouldBe` expected

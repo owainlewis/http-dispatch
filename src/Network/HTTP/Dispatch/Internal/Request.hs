@@ -41,13 +41,13 @@ getManagerForUrl url =
     if ("https" `isPrefixOf` url) then newManager tlsManagerSettings
                                   else newManager defaultManagerSettings
 
--- | Transforms an http-client respones into a Dispatch Response
+-- | Transforms an http-client response into a dispatch response
 --
 toResponse :: Client.Response LBS.ByteString -> HTTPResponse
 toResponse resp =
     let rStatus = statusCode . responseStatus $ resp
         rHdrs = responseHeaders resp
-        rBody = responseBody resp
+        rBody = LBS.toStrict $ responseBody resp
     in
     HTTPResponse rStatus (map (\(k,v) ->
                                 let hk = CI.original k

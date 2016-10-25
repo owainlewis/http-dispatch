@@ -5,7 +5,6 @@ module Network.HTTP.Dispatch.Types where
 
 import qualified Data.ByteString       as S
 import qualified Data.ByteString.Char8 as SC
-import qualified Data.ByteString.Lazy  as LBS
 
 type Url = String
 
@@ -14,13 +13,15 @@ type Headers = [Header]
 type Body = S.ByteString
 
 data HTTPRequestMethod =
-    GET
-  | PUT
+    HEAD
+  | GET
   | POST
+  | PUT
   | PATCH
-  | HEAD
+  | DELETE
+  | TRACE
   | OPTIONS
-  | DELETE deriving ( Eq, Show )
+  | CONNECT deriving ( Eq, Show )
 
 type Header = (S.ByteString, S.ByteString)
 
@@ -41,7 +42,7 @@ data HTTPResponse = HTTPResponse {
     -- The response headers
   , respHeaders :: [Header]
     -- The response body
-  , respBody    :: LBS.ByteString
+  , respBody    :: S.ByteString
 } deriving ( Eq, Show )
 
 header :: String -> String -> Header
