@@ -11,29 +11,6 @@ This library builds upon the http-client library, providing an (IMO) easier and 
 
 *There are only two types (HTTPRequest and HTTPResponse). Everything else is sugar for constructing these types*
 
-## Constructing a request
-
-You can construct HTTP requests manually (method, url, headers body)
-
-```haskell
-response :: IO HTTPResponse
-response = runRequest (HTTPRequest GET "https://github.com" [] Nothing)
-```
-
-Or using a slightly prettier DSL. This DSL does nothing more than create the underlying HTTPRequest type above.
-
-```haskell
--- Build a HTTP request and run it
-response :: IO HTTPResponse
-response = runRequest (get "https://github.com")
-```
-
-The runRequest function just takes a HTTPRequest and turns it into a HTTPResponse
-
-```haskell
-runRequest :: HTTPRequest -> IO HTTPResponse
-```
-
 ### Differences from http-client
 
 * Simple DSL (only two types HTTPRequest and HTTPResponse)
@@ -47,16 +24,16 @@ runRequest :: HTTPRequest -> IO HTTPResponse
 There are already a couple of really good HTTP clients for Haskell ([Wreq](http://www.serpentine.com/wreq/), [HTTP Client](https://github.com/snoyberg/http-client)), but typically I'd need to go hunting through documentation just to do even the simplest thing.
 This is the HTTP library I wish I had when first learning Haskell.
 
-This library strips back everything to be as simple as possible.
+This library strips back everything to be as simple as possible. 
 It will transparently support HTTPS and has a very consistent DSL for making requests.
 
-There are only two types. A HTTPRequest and a HTTPResponse.
-That's all there is to know about this library.
+There are only two types. A HTTPRequest and a HTTPResponse. That's all there is to know about this library.
+
 Some utility functions are provided to make constructing requests easier but it's nothing more than sugar for creating types.
 
 ### HTTP Request
 
-You can turn a HTTPRequest into a HTTPResponse by calling "runRequest" on it.
+A HTTP request has a method, url, a list of headers and an optional body. Header is a type synonym for a ByteString pair i.e (S.ByteString, S.ByteString). The body is a strict ByteString. 
 
 ```haskell
 data HTTPRequest = HTTPRequest {
@@ -73,6 +50,8 @@ data HTTPRequest = HTTPRequest {
 
 ### HTTP Response
 
+A HTTP response has a status, a list of headers, an a response body. Header is a type synonym for a ByteString pair i.e (S.ByteString, S.ByteString). The body is a strict ByteString. 
+
 ```haskell
 data HTTPResponse = HTTPResponse {
     -- The response code
@@ -80,7 +59,7 @@ data HTTPResponse = HTTPResponse {
     -- The response headers
   , respHeaders :: [Header]
     -- The response body
-  , respBody    :: LBS.ByteString
+  , respBody    :: S.ByteString
 } deriving ( Eq, Show )
 
 ```
