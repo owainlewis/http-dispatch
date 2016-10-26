@@ -50,7 +50,7 @@ data HTTPRequest = HTTPRequest {
 
 ### HTTP Response
 
-A HTTP response has a status, a list of headers, an a response body. Header is a type synonym for a ByteString pair i.e (S.ByteString, S.ByteString). The body is a strict ByteString. 
+A HTTP response has a status, a list of headers, and a response body. Header is a type synonym for a ByteString pair i.e (S.ByteString, S.ByteString). The body is a strict ByteString. 
 
 ```haskell
 data HTTPResponse = HTTPResponse {
