@@ -45,7 +45,7 @@ data HTTPRequest = HTTPRequest {
   , reqHeaders :: [Header]
   -- An optional request body
   , reqBody    :: Maybe S.ByteString
-} deriving ( Eq, Show )
+}
 ```
 
 ### HTTP Response
@@ -60,13 +60,15 @@ data HTTPResponse = HTTPResponse {
   , respHeaders :: [Header]
     -- The response body
   , respBody    :: S.ByteString
-} deriving ( Eq, Show )
+}
 
 ```
 
 ## Examples
 
-Some examples to help you get started. Remember that *everything* is just a helper for constructing the HTTPRequest type.
+Some examples to help you get started. 
+
+Remember that *everything* is just sugar for constructing the HTTPRequest type and calling run on it to convert it to a IO HttpResponse.
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
