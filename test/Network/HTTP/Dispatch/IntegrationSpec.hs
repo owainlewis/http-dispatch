@@ -2,6 +2,8 @@
 module Network.HTTP.Dispatch.IntegrationSpec where
 
 import           Network.HTTP.Dispatch.Api
+import           Network.HTTP.Dispatch.Types
+
 import           Test.Hspec
 
 main :: IO ()
