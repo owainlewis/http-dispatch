@@ -8,6 +8,8 @@ import qualified Data.ByteString.Char8 as SC
 
 type Url = String
 
+type Header = (S.ByteString, S.ByteString)
+
 type Headers = [Header]
 
 type Body = S.ByteString
@@ -22,8 +24,6 @@ data HTTPRequestMethod =
   | TRACE
   | OPTIONS
   | CONNECT deriving ( Eq, Show )
-
-type Header = (S.ByteString, S.ByteString)
 
 data HTTPRequest = HTTPRequest {
    -- A HTTP request method e.g GET POST etc
