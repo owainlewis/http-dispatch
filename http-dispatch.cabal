@@ -14,10 +14,10 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Network.HTTP.Dispatch.Api
+  exposed-modules:     Network.HTTP.Dispatch.Dispatch
+                     , Network.HTTP.Dispatch.Headers
                      , Network.HTTP.Dispatch.Request
                      , Network.HTTP.Dispatch.Types
-                     , Network.HTTP.Dispatch.Headers
   build-depends:       base >= 4.5 && < 5
                      , http-client
                      , http-client-tls

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.IntegrationSpec where
 
-import           Network.HTTP.Dispatch.Api
+import           Network.HTTP.Dispatch.Dispatch
 import           Network.HTTP.Dispatch.Types
 
 import           Test.Hspec
@@ -13,7 +13,7 @@ spec :: Spec
 spec = do
     describe "making GET requests" $ do
         it "returns HTTP 200" $ do
-            response <- get "https://httpbin.org/get" []
+            response <- get "https://httpbin.org/get" [("Content-Type", "application/json")]
             (respStatus response) `shouldBe` 200
     describe "making POST requests" $ do
         it "returns HTTP 200" $ do

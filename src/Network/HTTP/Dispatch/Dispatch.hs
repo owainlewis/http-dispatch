@@ -1,5 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Network.HTTP.Dispatch.Api
+-- |
+-- Module      : Network.HTTP.Dispatch.Dispatch
+-- Copyright   : (c) 2016 Owain Lewis
+--
+-- License     : BSD-style
+-- Maintainer  : owain@owainlewis.com
+-- Stability   : experimental
+-- Portability : GHC
+--
+-- A simple Haskell HTTP library
+--
+-- This module contains the primary user facing DSL for making requests
+--
+module Network.HTTP.Dispatch.Dispatch
   ( raw
   , get
   , post
@@ -16,16 +29,18 @@ import           Network.HTTP.Dispatch.Types
 -- | Constructs a HTTP request from raw components and returns a HTTP response
 --
 raw
-  :: HTTPRequestMethod
-  -> String
-  -> [Header]
-  -> Maybe S.ByteString
+  :: HTTPRequestMethod  -- A HTTP request method
+  -> String             -- A URL
+  -> [(String, String)] -- A list of HTTP headers
+  -> Maybe S.ByteString -- An optional HTTP request body
   -> IO HTTPResponse
-raw method url headers body = runRequest $ Dispatch.rawRequest method url headers body
+raw method url headers body =
+  let byteStringHeaders = transformHeaders headers in
+  runRequest $ Dispatch.rawRequest method url byteStringHeaders body
 
 get
   :: String
-  -> [Header]
+  -> [(String, String)]
   -> IO HTTPResponse
 get url headers = raw GET url headers Nothing
 
@@ -33,7 +48,7 @@ get url headers = raw GET url headers Nothing
 --
 post
   :: String
-  -> [Header]
+  -> [(String, String)]
   -> Maybe S.ByteString
   -> IO HTTPResponse
 post url headers body = raw POST url headers body
@@ -42,7 +57,7 @@ post url headers body = raw POST url headers body
 --
 put
   :: String
-  -> [Header]
+  -> [(String, String)]
   -> Maybe S.ByteString
   -> IO HTTPResponse
 put url headers body = raw PUT url headers body
@@ -51,7 +66,7 @@ put url headers body = raw PUT url headers body
 --
 patch
   :: String
-  -> [Header]
+  -> [(String, String)]
   -> Maybe S.ByteString
   -> IO HTTPResponse
 patch url headers body = raw PATCH url headers body
@@ -60,6 +75,6 @@ patch url headers body = raw PATCH url headers body
 --
 delete
   :: String
-  -> [Header]
+  -> [(String, String)]
   -> IO HTTPResponse
 delete url headers = raw DELETE url headers Nothing

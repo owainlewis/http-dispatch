@@ -1,6 +1,17 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+-- |
+-- Module      : Network.HTTP.Dispatch.Headers
+-- Copyright   : (c) 2016 Owain Lewis
+--
+-- License     : BSD-style
+-- Maintainer  : owain@owainlewis.com
+-- Stability   : experimental
+-- Portability : GHC
+--
+-- HTTP Types
+--
 module Network.HTTP.Dispatch.Types where
 
 import qualified Data.ByteString       as S
@@ -47,6 +58,9 @@ data HTTPResponse = HTTPResponse {
 
 header :: String -> String -> Header
 header k v = (SC.pack k , SC.pack v)
+
+transformHeaders :: [(String, String)] -> [Header]
+transformHeaders = map (\(k,v) -> header k v)
 
 withHeader :: HTTPRequest -> Header -> HTTPRequest
 withHeader req header = req { reqHeaders = header : (reqHeaders req) }

@@ -1,4 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
+-- |
+-- Module      : Network.HTTP.Dispatch.Request
+-- Copyright   : (c) 2016 Owain Lewis
+--
+-- License     : BSD-style
+-- Maintainer  : owain@owainlewis.com
+-- Stability   : experimental
+-- Portability : GHC
+--
+-- HTTP request generation DSL
+--
 module Network.HTTP.Dispatch.Request
        ( HTTPRequest(..)
        , HTTPResponse(..)

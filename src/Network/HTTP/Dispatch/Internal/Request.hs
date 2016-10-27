@@ -1,4 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
+-- |
+-- Module      : Network.HTTP.Dispatch.Internal.Request
+-- Copyright   : (c) 2016 Owain Lewis
+--
+-- License     : BSD-style
+-- Maintainer  : owain@owainlewis.com
+-- Stability   : experimental
+-- Portability : GHC
+--
+-- A transformation layer between Dispatch types and http client
+--
 module Network.HTTP.Dispatch.Internal.Request
   ( toRequest
   , runRequest
