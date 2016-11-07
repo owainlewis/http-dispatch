@@ -4,7 +4,9 @@
 
 [![CircleCI](https://circleci.com/gh/owainlewis/http-dispatch.svg?style=svg)](https://circleci.com/gh/owainlewis/http-dispatch)
 
-Available on Hackage: https://hackage.haskell.org/package/http-dispatch-0.5.0.2
+Available on Hackage: You'll want to use a version at 0.6.0.0 or greater
+
+https://hackage.haskell.org/package/http-dispatch-0.6.0.0
 
 A high level Haskell HTTP client with a friendly and consistent API.
 This library builds upon the http-client library, providing an (IMO) easier and more intuative API
