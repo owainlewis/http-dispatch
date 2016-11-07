@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTP.Dispatch.Examples.RequestExamples where
 
-import           Network.HTTP.Dispatch.Api
+import           Network.HTTP.Dispatch.Dispatch
 import qualified Network.HTTP.Dispatch.Request as Request
 import           Network.HTTP.Dispatch.Headers (basicAuth)
 import           Network.HTTP.Dispatch.Types
