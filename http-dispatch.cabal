@@ -1,7 +1,7 @@
 name:                http-dispatch
 version:             0.6.1.0
 synopsis:            High level HTTP client for Haskell
-description:         Please see README.md
+description:         A high level HTTP client with a simple API
 homepage:            http://github.com/owainlewis/http-dispatch#readme
 license:             BSD3
 license-file:        LICENSE
@@ -20,9 +20,9 @@ library
                      , Network.HTTP.Dispatch.Internal.Request
                      , Network.HTTP.Dispatch.Types
   build-depends:       base >= 4.5 && < 5
-                     , http-client
-                     , http-client-tls
-                     , http-types
+                     , http-client == 0.5.4
+                     , http-client-tls == 0.3.3
+                     , http-types == 0.9.1
                      , bytestring
                      , base64-bytestring
                      , case-insensitive

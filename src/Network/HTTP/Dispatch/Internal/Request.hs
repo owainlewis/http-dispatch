@@ -32,13 +32,11 @@ import           Network.HTTP.Types          (RequestHeaders, Status (..))
 --
 toRequest :: HTTPRequest -> IO Client.Request
 toRequest (HTTPRequest method url headers body) = do
-    initReq <- parseUrl url
+    initReq <- parseRequest url
     let hdrs = map (\(k, v) -> (CI.mk k, v)) headers
         req = initReq
               { method = C.pack . show $ method
               , requestHeaders = hdrs
-                -- Make sure no exceptions are thrown so that we can handle non 200 codes
-              , checkStatus = \_ _ _ -> Nothing
               }
     case body of
       Just lbs ->

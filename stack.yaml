@@ -1,35 +1,24 @@
-# For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration.html
-
-# Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: lts-3.12
-
-# Local packages, usually specified by relative directory name
+flags:
+  semigroups:
+    bytestring-builder: false
+extra-package-dbs: []
 packages:
 - '.'
-
-# Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
-extra-deps: []
-
-# Override default flag values for local packages and extra-deps
-flags: {}
-
-# Extra package databases containing global packages
-extra-package-dbs: []
-
-# Control whether we use the GHC we find on the path
-# system-ghc: true
-
-# Require a specific version of stack, using version ranges
-# require-stack-version: -any # Default
-# require-stack-version: >= 1.0.0
-
-# Override the architecture used by stack, especially useful on Windows
-# arch: i386
-# arch: x86_64
-
-# Extra directories used by stack for building
-# extra-include-dirs: [/path/to/dir]
-# extra-lib-dirs: [/path/to/dir]
-
-# Allow a newer minor version of GHC than the snapshot specifies
-# compiler-check: newer-minor
+extra-deps:
+- aeson-1.0.2.1
+- attoparsec-0.13.1.0
+- base-compat-0.9.1
+- call-stack-0.1.0
+- fail-4.9.0.0
+- hspec-2.3.2
+- hspec-core-2.3.2
+- hspec-discover-2.3.2
+- hspec-expectations-0.8.2
+- http-client-0.5.4
+- http-client-tls-0.3.3
+- http-types-0.9.1
+- scientific-0.3.4.9
+- semigroups-0.18.2
+- tagged-0.8.4
+- vector-0.11.0.0
+resolver: lts-3.12
