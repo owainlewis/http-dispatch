@@ -1,5 +1,5 @@
 name:                http-dispatch
-version:             0.6.0.0
+version:             0.6.1.0
 synopsis:            High level HTTP client for Haskell
 description:         Please see README.md
 homepage:            http://github.com/owainlewis/http-dispatch#readme
@@ -17,6 +17,7 @@ library
   exposed-modules:     Network.HTTP.Dispatch.Dispatch
                      , Network.HTTP.Dispatch.Headers
                      , Network.HTTP.Dispatch.Request
+                     , Network.HTTP.Dispatch.Internal.Request
                      , Network.HTTP.Dispatch.Types
   build-depends:       base >= 4.5 && < 5
                      , http-client
