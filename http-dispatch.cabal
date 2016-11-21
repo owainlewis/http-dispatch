@@ -20,9 +20,9 @@ library
                      , Network.HTTP.Dispatch.Internal.Request
                      , Network.HTTP.Dispatch.Types
   build-depends:       base >= 4.5 && < 5
-                     , http-client == 0.5.4
-                     , http-client-tls == 0.3.3
-                     , http-types == 0.9.1
+                     , http-client >= 0.5.4
+                     , http-client-tls >= 0.3.3
+                     , http-types >= 0.9.1
                      , bytestring
                      , base64-bytestring
                      , case-insensitive
