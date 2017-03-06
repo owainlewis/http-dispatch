@@ -8,110 +8,60 @@
 -- Stability   : experimental
 -- Portability : GHC
 --
--- HTTP request generation DSL
+-- HTTP request type
 --
 module Network.HTTP.Dispatch.Request
-       ( HTTPRequest(..)
-       , HTTPResponse(..)
-       , HTTPRequestMethod(..)
-       , runRequest
-       , rawRequest
-       , getRequest
-       , postRequest
-       , putRequest
-       , patchRequest
-       , deleteRequest
-       , headRequest
-       , optionsRequest
-       , withQueryParams
-       ) where
+    ( RequestMethod(..)
+    , HTTPRequest(..)
+    , header
+    , transformHeaders
+    , withHeader
+    , withHeaders
+    , withBody
+    , withMethod
+    , dropHeaderWithKey
+    ) where
 
-import qualified Data.ByteString                        as S
-import           Data.Monoid                            (mconcat)
-import           Network.HTTP.Dispatch.Internal.Request
-import           Network.HTTP.Dispatch.Types
-import           Prelude                                hiding (head)
+import qualified Data.ByteString       as S
+import qualified Data.ByteString.Char8 as SC
 
-import           Data.List                              (intersperse)
+data RequestMethod =
+    HEAD
+  | GET
+  | POST
+  | PUT
+  | PATCH
+  | DELETE
+  | TRACE
+  | OPTIONS
+  | CONNECT deriving ( Eq, Ord, Show )
 
--- | Given an HTTP request type, run the request and return the response
---
-run :: HTTPRequest -> IO HTTPResponse
-run req = runRequest req
+data HTTPRequest = HTTPRequest {
+    method  :: RequestMethod
+  , url     :: String
+  , headers :: [(S.ByteString, S.ByteString)]
+  , body    :: Maybe S.ByteString
+} deriving ( Eq, Ord, Show )
 
--- | Make a raw HTTP request
---
--- @
---   raw GET "http://google.com" [header "Content-Type" "application/json"] Nothing
---
---   HTTPRequest { reqMethod = GET
---               , reqUrl = "http://google.com"
---               , reqHeaders = [("Content-Type","application/json")]
---               , reqBody = Nothing
---               }
--- @
-rawRequest :: HTTPRequestMethod -> String -> [Header] -> Maybe S.ByteString -> HTTPRequest
-rawRequest method url headers body = HTTPRequest method url headers body
+header :: String -> String -> (S.ByteString, S.ByteString)
+header k v = (SC.pack k , SC.pack v)
 
--- | Make a simple HTTP GET request with headers
---
--- @
---   getRequest "http://google.com" [header "Content-Type" "application/json"]
---
---   HTTPRequest { reqMethod = GET
---               , reqUrl = "http://google.com"
---               , reqHeaders = [("Content-Type","application/json")]
---               , reqBody = Nothing
---               }
--- @
-getRequest :: String -> [Header] -> HTTPRequest
-getRequest url headers = rawRequest GET url headers Nothing
+transformHeaders :: [(String, String)] -> [(S.ByteString, S.ByteString)]
+transformHeaders = map (\(k,v) -> header k v)
 
--- | Make a HTTP POST request with headers
---
-postRequest :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
-postRequest url headers body = rawRequest POST url headers body
+withHeader :: HTTPRequest -> (S.ByteString, S.ByteString) -> HTTPRequest
+withHeader req header = req { headers = header : (headers req) }
 
--- | Make a HTTP PUT request with headers
---
-putRequest :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
-putRequest url headers body = rawRequest PUT url headers body
+withHeaders :: HTTPRequest -> [(S.ByteString, S.ByteString)] -> HTTPRequest
+withHeaders req headers = req { headers = headers }
 
--- | Make a HTTP PATCH request with headers
---
-patchRequest :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
-patchRequest url headers body = HTTPRequest PATCH url headers body
+withBody :: HTTPRequest -> S.ByteString -> HTTPRequest
+withBody req body = req { body = Just body }
 
--- | Make a HTTP DELETE request with headers
---
-deleteRequest :: Url -> Headers -> HTTPRequest
-deleteRequest url headers = rawRequest DELETE url headers Nothing
+withMethod :: HTTPRequest -> RequestMethod -> HTTPRequest
+withMethod req method = req { method = method }
 
--- | Make a HTTP OPTIONS request
---
-optionsRequest :: Url -> [Header] -> HTTPRequest
-optionsRequest url headers = rawRequest OPTIONS url headers Nothing
-
--- | Make a HTTP HEAD request
---
-headRequest :: Url -> [Header] -> HTTPRequest
-headRequest url headers = rawRequest HEAD url headers Nothing
-
--- | Add query params to a request URL
---
--- @
---   withQueryParams (get "http://google.com") [("foo", "bar")]
---
---   HTTPRequest { reqMethod = GET
---               , reqUrl = "http://google.com?foo=bar"
---               , reqHeaders = []
---               , reqBody = Nothing
---               }
--- @
-withQueryParams :: HTTPRequest -> [(String, String)] -> HTTPRequest
-withQueryParams req params = req { reqUrl = u ++ p }
-    where u = reqUrl req
-          p = compileParams params
-          compileParams params = "?" ++ qParams :: String
-            where parts = map (\(k,v) -> mconcat [k, "=", v]) params
-                  qParams = mconcat (intersperse "&" parts)
+dropHeaderWithKey :: HTTPRequest -> S.ByteString -> HTTPRequest
+dropHeaderWithKey req@(HTTPRequest _ _ hdrs _) headerKey =
+  let filteredHeaders = filter (\(k,v) -> k /= headerKey) hdrs in
+      withHeaders req filteredHeaders

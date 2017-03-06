@@ -16,17 +16,19 @@ module Network.HTTP.Dispatch.Internal.Request
   , Runnable
   ) where
 
-import           Control.Applicative         ((<$>))
-import qualified Data.ByteString.Char8       as C
-import qualified Data.ByteString.Lazy        as LBS
-import qualified Data.CaseInsensitive        as CI
-import           Data.List                   (isPrefixOf)
-import           Network.HTTP.Client         as Client
+import           Control.Applicative            ((<$>))
+import qualified Data.ByteString.Char8          as C
+import qualified Data.ByteString.Lazy           as LBS
+import qualified Data.CaseInsensitive           as CI
+import           Data.List                      (isPrefixOf)
+import           Network.HTTP.Client            as Client
 import           Network.HTTP.Client.TLS
-import           Network.HTTP.Dispatch.Types (HTTPRequest (..),
-                                              HTTPRequestMethod (..),
-                                              HTTPResponse (..), Header (..))
-import           Network.HTTP.Types          (RequestHeaders, Status (..))
+import           Network.HTTP.Dispatch.Types    (Header)
+import           Network.HTTP.Types             (RequestHeaders, Status (..))
+
+import           Network.HTTP.Dispatch.Request
+import           Network.HTTP.Dispatch.Response
+
 
 -- | Transforms a dispatch request into a low level http-client request
 --
@@ -35,14 +37,10 @@ toRequest (HTTPRequest method url headers body) = do
     initReq <- parseRequest url
     let hdrs = map (\(k, v) -> (CI.mk k, v)) headers
         req = initReq
-              { method = C.pack . show $ method
+              { Client.method = C.pack . show $ method
               , requestHeaders = hdrs
               }
-    case body of
-      Just lbs ->
-        return $ req { requestBody = RequestBodyBS lbs }
-      Nothing ->
-        return req
+    return $ maybe req (\lbs -> req { requestBody = RequestBodyBS lbs }) body
 
 -- | Get the correct Manager depending on the URL (i.e https vs http)
 --
@@ -65,14 +63,13 @@ toResponse resp =
                                 (hk, v)) rHdrs) rBody
 
 class Runnable a where
-    -- Run a HTTP request and return the response
-    runRequest :: a -> IO HTTPResponse
-    -- Run a HTTP request with custom settings (proxy, https etc) and return the response
+    runRequest             :: a -> IO HTTPResponse
     runRequestWithSettings :: a -> ManagerSettings -> IO HTTPResponse
 
 instance Runnable HTTPRequest where
+
     runRequest httpRequest = do
-        manager <- getManagerForUrl (reqUrl httpRequest)
+        manager <- getManagerForUrl (url httpRequest)
         request <- toRequest httpRequest
         toResponse <$> httpLbs request manager
 

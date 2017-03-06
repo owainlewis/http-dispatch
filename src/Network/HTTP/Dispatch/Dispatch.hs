@@ -26,17 +26,20 @@ import qualified Network.HTTP.Dispatch.Request          as Dispatch
 import           Network.HTTP.Dispatch.Internal.Request (runRequest)
 import           Network.HTTP.Dispatch.Types
 
+import           Network.HTTP.Dispatch.Request
+import           Network.HTTP.Dispatch.Response
+
 -- | Constructs a HTTP request from raw components and returns a HTTP response
 --
 raw
-  :: HTTPRequestMethod  -- A HTTP request method
+  :: RequestMethod  -- A HTTP request method
   -> String             -- A URL
   -> [(String, String)] -- A list of HTTP headers
   -> Maybe S.ByteString -- An optional HTTP request body
   -> IO HTTPResponse
 raw method url headers body =
   let byteStringHeaders = transformHeaders headers in
-  runRequest $ Dispatch.rawRequest method url byteStringHeaders body
+  runRequest $ HTTPRequest method url byteStringHeaders body
 
 get
   :: String
