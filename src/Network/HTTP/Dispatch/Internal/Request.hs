@@ -53,9 +53,9 @@ getManagerForUrl url =
 --
 toResponse :: Client.Response LBS.ByteString -> HTTPResponse
 toResponse resp =
-    let rStatus = statusCode . responseStatus $ resp
-        rHdrs = responseHeaders resp
-        rBody = LBS.toStrict $ responseBody resp
+    let rStatus = statusCode . Client.responseStatus $ resp
+        rHdrs = Client.responseHeaders resp
+        rBody = LBS.toStrict $ Client.responseBody resp
     in
     HTTPResponse rStatus (map (\(k,v) ->
                                 let hk = CI.original k

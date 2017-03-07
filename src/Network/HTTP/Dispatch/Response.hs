@@ -17,7 +17,8 @@ module Network.HTTP.Dispatch.Response
 import qualified Data.ByteString       as S
 
 data HTTPResponse = HTTPResponse {
-    status  :: Int
-  , headers :: [(S.ByteString, S.ByteString)]
-  , body    :: S.ByteString
+    responseStatus  :: Int
+  , responseHeaders :: [(S.ByteString, S.ByteString)]
+  , responseBody    :: S.ByteString
 } deriving ( Eq, Show )
+

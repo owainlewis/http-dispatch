@@ -44,10 +44,10 @@ run req = runRequest req
 -- @
 --   raw GET "http://google.com" [header "Content-Type" "application/json"] Nothing
 --
---   HTTPRequest { reqMethod = GET
---               , reqUrl = "http://google.com"
---               , reqHeaders = [("Content-Type","application/json")]
---               , reqBody = Nothing
+--   HTTPRequest { method = GET
+--               , url = "http://google.com"
+--               , headers = [("Content-Type","application/json")]
+--               , body = Nothing
 --               }
 -- @
 rawRequest :: RequestMethod -> String -> [Header] -> Maybe S.ByteString -> HTTPRequest
@@ -58,10 +58,10 @@ rawRequest method url headers body = HTTPRequest method url headers body
 -- @
 --   getRequest "http://google.com" [header "Content-Type" "application/json"]
 --
---   HTTPRequest { reqMethod = GET
---               , reqUrl = "http://google.com"
---               , reqHeaders = [("Content-Type","application/json")]
---               , reqBody = Nothing
+--   HTTPRequest { method = GET
+--               , url = "http://google.com"
+--               , headers = [("Content-Type","application/json")]
+--               , body = Nothing
 --               }
 -- @
 getRequest :: String -> [Header] -> HTTPRequest
@@ -80,7 +80,7 @@ putRequest url headers body = rawRequest PUT url headers body
 -- | Make a HTTP PATCH request with headers
 --
 patchRequest :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
-patchRequest url headers body = HTTPRequest PATCH url headers body
+patchRequest url headers body = rawRequest PATCH url headers body
 
 -- | Make a HTTP DELETE request with headers
 --
@@ -102,10 +102,10 @@ headRequest url headers = rawRequest HEAD url headers Nothing
 -- @
 --   withQueryParams (get "http://google.com") [("foo", "bar")]
 --
---   HTTPRequest { reqMethod = GET
---               , reqUrl = "http://google.com?foo=bar"
---               , reqHeaders = []
---               , reqBody = Nothing
+--   HTTPRequest { method = GET
+--               , url = "http://google.com?foo=bar"
+--               , headers = []
+--               , body = Nothing
 --               }
 -- @
 withQueryParams :: HTTPRequest -> [(String, String)] -> HTTPRequest

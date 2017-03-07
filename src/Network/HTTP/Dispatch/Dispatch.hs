@@ -19,6 +19,8 @@ module Network.HTTP.Dispatch.Dispatch
   , put
   , patch
   , delete
+  , HTTPRequest(..)
+  , HTTPResponse(..)
   ) where
 
 import qualified Data.ByteString                        as S

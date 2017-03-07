@@ -2,6 +2,7 @@
 module Network.HTTP.Dispatch.TypeSpec where
 
 import           Network.HTTP.Dispatch.Types
+import           Network.HTTP.Dispatch.Request
 import           Test.Hspec
 
 main :: IO ()
