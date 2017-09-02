@@ -29,9 +29,6 @@ import           Network.HTTP.Dispatch.Internal.Request
 import           Network.HTTP.Dispatch.Types
 import           Prelude                                hiding (head)
 
-import Network.HTTP.Dispatch.Request
-import Network.HTTP.Dispatch.Response
-
 import           Data.List                              (intersperse)
 
 -- | Given an HTTP request type, run the request and return the response

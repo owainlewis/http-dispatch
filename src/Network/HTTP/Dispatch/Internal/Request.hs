@@ -26,9 +26,7 @@ import           Network.HTTP.Client.TLS
 import           Network.HTTP.Dispatch.Types    (Header)
 import           Network.HTTP.Types             (RequestHeaders, Status (..))
 
-import           Network.HTTP.Dispatch.Request
-import           Network.HTTP.Dispatch.Response
-
+import           Network.HTTP.Dispatch.Types
 
 -- | Transforms a dispatch request into a low level http-client request
 --

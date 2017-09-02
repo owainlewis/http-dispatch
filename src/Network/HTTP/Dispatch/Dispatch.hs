@@ -28,9 +28,6 @@ import qualified Network.HTTP.Dispatch.Request          as Dispatch
 import           Network.HTTP.Dispatch.Internal.Request (runRequest)
 import           Network.HTTP.Dispatch.Types
 
-import           Network.HTTP.Dispatch.Request
-import           Network.HTTP.Dispatch.Response
-
 -- | Constructs a HTTP request from raw components and returns a HTTP response
 --
 raw
