@@ -23,12 +23,6 @@ module Network.HTTP.Dispatch.Types
     , withHeaders
     , withBody
     , withMethod
-    , get
-    , post
-    , put
-    , delete
-    , head
-    , options
     ) where
 
 import Prelude hiding (head)
@@ -83,61 +77,3 @@ withBody req body = req { body = Just body }
 
 withMethod :: HTTPRequest -> RequestMethod -> HTTPRequest
 withMethod req method = req { method = method }
-
--- | Make a raw HTTP request
---
--- @
---   raw GET "http://google.com" [header "Content-Type" "application/json"] Nothing
---
---   HTTPRequest { method = GET
---               , url = "http://google.com"
---               , headers = [("Content-Type","application/json")]
---               , body = Nothing
---               }
--- @
-rawRequest :: RequestMethod -> String -> [Header] -> Maybe S.ByteString -> HTTPRequest
-rawRequest method url headers body = HTTPRequest method url headers body
-
--- | Make a simple HTTP GET request with headers
---
--- @
---   getRequest "http://google.com" [header "Content-Type" "application/json"]
---
---   HTTPRequest { method = GET
---               , url = "http://google.com"
---               , headers = [("Content-Type","application/json")]
---               , body = Nothing
---               }
--- @
-get :: String -> [Header] -> HTTPRequest
-get url headers = rawRequest GET url headers Nothing
-
--- | Make a HTTP POST request with headers
---
-post :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
-post url headers body = rawRequest POST url headers body
-
--- | Make a HTTP PUT request with headers
---
-put :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
-put url headers body = rawRequest PUT url headers body
-
--- | Make a HTTP PATCH request with headers
---
-patch :: Url -> Headers -> Maybe S.ByteString -> HTTPRequest
-patch url headers body = rawRequest PATCH url headers body
-
--- | Make a HTTP DELETE request with headers
---
-delete :: Url -> Headers -> HTTPRequest
-delete url headers = rawRequest DELETE url headers Nothing
-
--- | Make a HTTP OPTIONS request
---
-options :: Url -> [Header] -> HTTPRequest
-options url headers = rawRequest OPTIONS url headers Nothing
-
--- | Make a HTTP HEAD request
---
-head :: Url -> [Header] -> HTTPRequest
-head url headers = rawRequest HEAD url headers Nothing
