@@ -20,6 +20,11 @@ This library builds upon the http-client library, providing an (IMO) easier and 
 * No exceptions thrown on non 200 status codes
 * Supports TLS out of the box
 
+### Differences from wreq
+
+* Lighter
+* Doesn't require lens package
+
 ## Motivation
 
 There are already a couple of really good HTTP clients for Haskell ([Wreq](http://www.serpentine.com/wreq/), [HTTP Client](https://github.com/snoyberg/http-client)), but typically I'd need to go hunting through documentation just to do even the simplest thing (or having to import a different package for https).
