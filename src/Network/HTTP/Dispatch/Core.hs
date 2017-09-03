@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- |
--- Module      : Network.HTTP.Dispatch.Internal.Request
+-- Module      : Network.HTTP.Dispatch.Core
 -- Copyright   : (c) 2016 Owain Lewis
 --
 -- License     : BSD-style
@@ -10,10 +10,9 @@
 --
 -- A transformation layer between Dispatch types and http client
 --
-module Network.HTTP.Dispatch.Internal.Request
-  ( toRequest
-  , runRequest
-  , Runnable
+module Network.HTTP.Dispatch.Core
+  ( http
+  , httpManager
   ) where
 
 import           Control.Applicative            ((<$>))
@@ -61,17 +60,16 @@ toResponse resp =
                                 (hk, v)) rHdrs) rBody
 
 class Runnable a where
-    runRequest             :: a -> IO HTTPResponse
-    runRequestWithSettings :: a -> ManagerSettings -> IO HTTPResponse
+    http        :: a -> IO HTTPResponse
+    httpManager :: a -> ManagerSettings -> IO HTTPResponse
 
 instance Runnable HTTPRequest where
-
-    runRequest httpRequest = do
-        manager <- getManagerForUrl (url httpRequest)
-        request <- toRequest httpRequest
+    http req = do
+        manager <- getManagerForUrl (url req)
+        request <- toRequest req
         toResponse <$> httpLbs request manager
 
-    runRequestWithSettings httpRequest settings = do
+    httpManager req settings = do
         manager <- newManager settings
-        request <- toRequest httpRequest
+        request <- toRequest req
         toResponse <$> httpLbs request manager
