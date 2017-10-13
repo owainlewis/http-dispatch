@@ -43,7 +43,7 @@ A HTTP request has a method, url, a list of headers and an optional body. Header
 
 ```haskell
 data HTTPRequest = HTTPRequest {
-	method  :: RequestMethod
+    method  :: RequestMethod
   , url     :: String
   , headers :: [(S.ByteString, S.ByteString)]
   , body    :: Maybe S.ByteString
