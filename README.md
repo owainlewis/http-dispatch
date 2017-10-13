@@ -56,7 +56,7 @@ A HTTP response has a status, a list of headers, and a response body. Header is 
 
 ```haskell
 data HTTPResponse = HTTPResponse {
-	responseStatus  :: Int
+    responseStatus  :: Int
   , responseHeaders :: [(S.ByteString, S.ByteString)]
   , resposeBody    :: S.ByteString
 } deriving ( Eq, Show )
@@ -75,8 +75,7 @@ module Example
 import qualified          Network.HTTP.Dispatch as Dispatch
 
 response :: IO Dispatch.HttpResponse
-response = http request
-	where reqeuest = get "http://google.com"
+response = http request where reqeuest = get "http://google.com"
 
 ```
 
