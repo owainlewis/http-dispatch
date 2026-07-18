@@ -177,7 +177,8 @@ The default client reads `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` through
 `http-client`. Its `NO_PROXY` behavior is comma-separated host/domain suffix
 matching, not wildcard, port, or CIDR matching. Override a single request with
 `withProxy (Proxy host port)` or `withoutProxy`. Add proxy credentials with
-`proxyBasicAuth`.
+`proxyBasicAuth` after an explicit `withProxy`; credentials without an explicit
+proxy are rejected before transport.
 
 For custom certificate authorities, mutual TLS, connection limits, or header
 limits, create `ClientOptions` from `defaultClientOptions tlsManagerSettings`

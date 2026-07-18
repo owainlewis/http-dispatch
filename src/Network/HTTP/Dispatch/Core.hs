@@ -340,14 +340,29 @@ buildSafely request =
 prepareRequest :: Client -> HTTPRequest -> IO (Either HTTPError Request)
 prepareRequest client request = do
   built <- buildSafely request
-  case (built, clientCookieJar client, clientDirectManager client) of
+  let authenticated = built >>= attachProxyCredentials request
+  case (authenticated, clientCookieJar client, clientDirectManager client) of
     (Right _, _, Nothing) | requestOverridesClientProxy request ->
       pure (Left (RequestBuildError
         (Text.pack "Per-request proxy overrides require newClientWith or clientFromManagers")))
     (Right value, Just jarVar, _) | not (requestCookieJarExplicit request) -> do
       jar <- readMVar jarVar
       pure (Right value { Client.cookieJar = Just jar })
-    _ -> pure built
+    _ -> pure authenticated
+
+attachProxyCredentials :: HTTPRequest -> Request -> Either HTTPError Request
+attachProxyCredentials dispatchRequest request = case requestProxyCredentials dispatchRequest of
+  Nothing -> Right request
+  Just (username, password) -> case Client.proxy request of
+    Just _ ->
+      let sanitized = request
+            { Client.requestHeaders = filter
+                ((/= CI.mk (B8.pack "Proxy-Authorization")) . fst)
+                (Client.requestHeaders request)
+            }
+      in Right (Client.applyBasicProxyAuth username password sanitized)
+    Nothing -> Left (RequestBuildError (Text.pack
+      "proxyBasicAuth requires an explicit withProxy selection"))
 
 updateSession :: Client -> HTTPRequest -> Request -> Response body -> IO ()
 updateSession client dispatchRequest request response = case clientCookieJar client of

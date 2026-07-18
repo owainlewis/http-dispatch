@@ -131,6 +131,7 @@ data HTTPRequest = HTTPRequest
   , requestStatusPolicy :: StatusPolicy
   , requestCookieJarExplicit :: Bool
   , requestOverridesClientProxy :: Bool
+  , requestProxyCredentials :: Maybe (ByteString, ByteString)
   }
 
 -- | Response metadata parameterized by its buffered, decoded, or streaming body.

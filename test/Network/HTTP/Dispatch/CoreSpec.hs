@@ -258,6 +258,25 @@ spec = around withTestServer $ do
           (get baseUrl & withProxy (Proxy "127.0.0.1" 1) & withTimeout 100000)
         result `shouldSatisfy` isTransportError
 
+    it "rejects proxy credentials when a request bypasses its proxy" $ \baseUrl ->
+      withFreshClient $ \client -> do
+        result <- trySend client
+          (get baseUrl & proxyBasicAuth "user" "pass" & withoutProxy)
+        case result of
+          Left (RequestBuildError _) -> pure ()
+          other -> expectationFailure ("expected RequestBuildError, got " <> show other)
+
+    it "sends proxy credentials to an explicitly selected proxy" $ \_ -> do
+      captured <- newIORef []
+      testWithApplication (pure (proxyApp captured)) $ \port -> withFreshClient $ \client -> do
+        response <- send client
+          (get "http://example.invalid/resource"
+            & withProxy (Proxy "127.0.0.1" port)
+            & withHeader ("Proxy-Authorization", "Basic b2xkOm9sZA==")
+            & proxyBasicAuth "user" "pass")
+        responseBody response `shouldBe` "proxy"
+        readIORef captured `shouldReturn` ["Basic dXNlcjpwYXNz"]
+
     it "preserves proxy policy supplied to the manager compatibility helper" $ \baseUrl ->
       withEnv "http_proxy" (Just "http://127.0.0.1:1") $
         withEnv "no_proxy" Nothing $ do
@@ -336,6 +355,12 @@ retryCookieApp counter requestValue respond = do
     else if lookup hCookie (requestHeaders requestValue) == Just "gate=yes"
       then respond $ responseLBS status200 [] "ok"
       else respond $ responseLBS status400 [] "missing retry cookie"
+
+proxyApp :: IORef [BS.ByteString] -> Application
+proxyApp captured requestValue respond = do
+  writeIORef captured
+    [value | (name, value) <- requestHeaders requestValue, name == "Proxy-Authorization"]
+  respond $ responseLBS status200 [] "proxy"
 
 isResponseTooLarge :: Either HTTPError response -> Bool
 isResponseTooLarge (Left (ResponseTooLarge 4)) = True

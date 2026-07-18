@@ -135,7 +135,9 @@ option preserves a custom selector already present in `managerSettings`.
 Use `withProxy` or `withoutProxy` for a single request. These overrides are
 supported by `newClientWith` and `clientFromManagers`; `clientFromManager`
 rejects them because an arbitrary manager may replace the request proxy. Proxy
-authentication is added with `proxyBasicAuth`. HTTPS proxying and CONNECT
+authentication is added with `proxyBasicAuth` after an explicit `withProxy`.
+Requiring the explicit target prevents proxy credentials from reaching an
+origin when environment proxy selection is bypassed. HTTPS proxying and CONNECT
 behavior are delegated to `http-client-tls`.
 
 `newClient` does not retain cookies. `newSessionClient` creates a concurrent,

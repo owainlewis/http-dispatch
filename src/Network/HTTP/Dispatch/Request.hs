@@ -81,7 +81,6 @@ import Network.HTTP.Client
   , RequestBody (..)
   , applyBasicAuth
   , applyBearerAuth
-  , applyBasicProxyAuth
   , parseRequest
   , responseTimeoutMicro
   , responseTimeoutNone
@@ -135,6 +134,7 @@ request requestMethod target = HTTPRequest
   , requestStatusPolicy = AcceptAnyStatus
   , requestCookieJarExplicit = False
   , requestOverridesClientProxy = False
+  , requestProxyCredentials = Nothing
   }
 
 -- | Compatibility constructor for a method, URL, headers, and strict body.
@@ -263,10 +263,12 @@ bearerAuth :: BS.ByteString -> HTTPRequest -> HTTPRequest
 bearerAuth token = mapClientRequest $ \req ->
   applyBearerAuth token (removeHeader hAuthorization req)
 
--- | Apply Basic credentials for the selected proxy.
+-- | Apply Basic credentials for an explicit 'withProxy' selection. The request
+-- fails before transport if no explicit proxy is present, preventing credentials
+-- from leaking to an origin after environment or @NO_PROXY@ bypass.
 proxyBasicAuth :: BS.ByteString -> BS.ByteString -> HTTPRequest -> HTTPRequest
-proxyBasicAuth username password = mapClientRequest $ \req ->
-  applyBasicProxyAuth username password (removeHeader "Proxy-Authorization" req)
+proxyBasicAuth username password requestValue = requestValue
+  { requestProxyCredentials = Just (username, password) }
 
 -- | Select an explicit proxy for one request.
 withProxy :: Proxy -> HTTPRequest -> HTTPRequest
