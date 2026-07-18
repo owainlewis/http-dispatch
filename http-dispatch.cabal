@@ -68,6 +68,6 @@ test-suite http-dispatch-test
     , http-types
     , text
     , wai >= 3.2 && < 3.3
-    , warp >= 3.3 && < 3.5
+    , warp >= 3.3.21 && < 3.5
   default-language: GHC2021
   ghc-options:      -Wall -threaded -rtsopts -with-rtsopts=-N
