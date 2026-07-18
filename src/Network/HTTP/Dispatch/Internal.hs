@@ -3,6 +3,7 @@
 module Network.HTTP.Dispatch.Internal
   ( Client (..)
   , ClientOptions (..)
+  , ClientProxyPolicy (..)
   , defaultClientOptions
   , HTTPRequest (..)
   , RequestMethod (..)
@@ -41,15 +42,22 @@ data Client = Client
 -- | Manager, proxy-environment, and cookie-session configuration.
 data ClientOptions = ClientOptions
   { managerSettings :: ManagerSettings
-  , useProxyEnvironment :: Bool
+  , clientProxyPolicy :: ClientProxyPolicy
   , useCookieJar :: Bool
   }
+
+-- | How a client's primary manager selects proxies.
+data ClientProxyPolicy
+  = ProxyEnvironment
+  | ProxyFromRequest
+  | ProxyFromManager
+  deriving (Eq, Show)
 
 -- | Use the supplied manager settings with environment proxies and no session.
 defaultClientOptions :: ManagerSettings -> ClientOptions
 defaultClientOptions settings = ClientOptions
   { managerSettings = settings
-  , useProxyEnvironment = True
+  , clientProxyPolicy = ProxyEnvironment
   , useCookieJar = False
   }
 

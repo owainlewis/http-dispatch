@@ -4,18 +4,31 @@
 module Network.HTTP.Dispatch.CoreSpec (spec) where
 
 import Control.Concurrent (forkIO, newEmptyMVar, putMVar, takeMVar, threadDelay)
-import Control.Exception (bracket)
+import Control.Exception (bracket, throwIO)
 import Data.Aeson (object, (.=))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 import Data.Function ((&))
 import Data.IORef
-import Network.HTTP.Client (brRead, createCookieJar)
+import Network.HTTP.Client
+  ( brRead
+  , createCookieJar
+  , defaultRequest
+  , defaultManagerSettings
+  , HttpException (..)
+  , HttpExceptionContent (..)
+  , managerSetProxy
+  , newManager
+  , proxyEnvironment
+  , useProxy
+  )
 import Network.HTTP.Dispatch
 import Network.HTTP.Types
   ( hContentType
   , hCookie
+  , hLocation
   , status200
+  , status302
   , status400
   , status503
   )
@@ -83,6 +96,20 @@ spec = around withTestServer $ do
         brRead (responseBody response)
       result `shouldSatisfy` isBodyTimeout
 
+    it "never retries after a streaming callback begins" $ \baseUrl -> withFreshClient $ \client -> do
+      callbacks <- newIORef (0 :: Int)
+      let policy = defaultRetryPolicy
+            { retryLimit = 1
+            , retryBaseDelayMicros = 0
+            , retryMaxDelayMicros = 0
+            }
+      result <- withStreamingResponse client
+        (get (baseUrl <> "/stream") & retrying policy) $ \_ -> do
+          modifyIORef' callbacks (+ 1)
+          (throwIO (HttpExceptionRequest defaultRequest ConnectionTimeout) :: IO ())
+      result `shouldSatisfy` isTransportError
+      readIORef callbacks `shouldReturn` 1
+
   describe "retries" $ do
     it "retries configured transient responses for idempotent methods" $ \_ -> do
       counter <- newIORef 0
@@ -93,7 +120,9 @@ spec = around withTestServer $ do
               , retryMaxDelayMicros = 0
               }
         result <- trySend client
-          (get ("http://127.0.0.1:" <> show port) & retrying policy)
+          (get ("http://127.0.0.1:" <> show port)
+            & retrying policy
+            & maximumResponseBytes 4)
         response <- expectRight result
         responseStatus response `shouldBe` 200
         readIORef counter `shouldReturn` 2
@@ -125,6 +154,23 @@ spec = around withTestServer $ do
         response <- expectRight result
         responseStatus response `shouldBe` 200
         readIORef counter `shouldReturn` 2
+
+    it "applies retry policy before invoking a streaming callback" $ \_ -> do
+      counter <- newIORef 0
+      testWithApplication (pure (retryApp counter)) $ \port -> withFreshClient $ \client -> do
+        callbacks <- newIORef (0 :: Int)
+        let policy = defaultRetryPolicy
+              { retryLimit = 1
+              , retryBaseDelayMicros = 0
+              , retryMaxDelayMicros = 0
+              }
+        result <- withStreamingResponse client
+          (get ("http://127.0.0.1:" <> show port) & retrying policy) $ \response -> do
+            modifyIORef' callbacks (+ 1)
+            pure (responseStatus response)
+        expectRight result `shouldReturn` 200
+        readIORef counter `shouldReturn` 2
+        readIORef callbacks `shouldReturn` 1
 
     it "reinjects cookies updated by a retryable response" $ \_ -> do
       counter <- newIORef 0
@@ -168,7 +214,58 @@ spec = around withTestServer $ do
         responseBody response `shouldSatisfy` BS.isInfixOf "a=1"
         responseBody response `shouldSatisfy` BS.isInfixOf "b=2"
 
+    it "strips explicit redirect secrets but applies matching jar cookies" $ \baseUrl -> do
+      withFreshClient $ \plainClient -> do
+        response <- send plainClient
+          (get (baseUrl <> "/redirect")
+            & withHeader ("Authorization", "secret-auth")
+            & withHeader ("Cookie", "secret-cookie")
+            & withHeader ("Proxy-Authorization", "secret-proxy"))
+        responseBody response `shouldBe` ""
+      newSessionClient >>= \sessionClient -> do
+        response <- send sessionClient (get (baseUrl <> "/cookie-redirect"))
+        responseBody response `shouldBe` "hop=yes"
+
   describe "proxies" $ do
+    it "disables environment proxies when client options opt out" $ \baseUrl ->
+      withEnv "http_proxy" (Just "http://127.0.0.1:1") $
+        withEnv "no_proxy" Nothing $ do
+          let settings = managerSetProxy (proxyEnvironment Nothing) defaultManagerSettings
+              clientOptions = (defaultClientOptions settings)
+                { clientProxyPolicy = ProxyFromRequest }
+          client <- newClientWith clientOptions
+          response <- send client (get baseUrl)
+          responseStatus response `shouldBe` 200
+
+    it "preserves a manager proxy selector when requested" $ \baseUrl -> do
+      let settings = managerSetProxy (useProxy (Proxy "127.0.0.1" 1)) defaultManagerSettings
+          clientOptions = (defaultClientOptions settings)
+            { clientProxyPolicy = ProxyFromManager }
+      client <- newClientWith clientOptions
+      result <- trySend client (get baseUrl & withTimeout 100000)
+      result `shouldSatisfy` isTransportError
+
+    it "rejects proxy overrides on a client without an override manager" $ \baseUrl -> do
+      manager <- newManager defaultManagerSettings
+      result <- trySend (clientFromManager manager) (get baseUrl & withoutProxy)
+      case result of
+        Left (RequestBuildError _) -> pure ()
+        other -> expectationFailure ("expected RequestBuildError, got " <> show other)
+
+    it "routes explicit proxy selections instead of silently going direct" $ \baseUrl ->
+      withFreshClient $ \client -> do
+        result <- trySend client
+          (get baseUrl & withProxy (Proxy "127.0.0.1" 1) & withTimeout 100000)
+        result `shouldSatisfy` isTransportError
+
+    it "preserves proxy policy supplied to the manager compatibility helper" $ \baseUrl ->
+      withEnv "http_proxy" (Just "http://127.0.0.1:1") $
+        withEnv "no_proxy" Nothing $ do
+          response <- httpManager
+            (get baseUrl & withoutProxy)
+            (managerSetProxy (proxyEnvironment Nothing) defaultManagerSettings)
+          responseStatus response `shouldBe` 200
+
     it "lets a request bypass the client's environment proxy" $ \baseUrl ->
       withEnv "http_proxy" (Just "http://127.0.0.1:1") $
         withEnv "no_proxy" Nothing $
@@ -206,6 +303,14 @@ testApp requestValue respond = case pathInfo requestValue of
     write "abc"
     flush
     write "def"
+  ["redirect"] -> respond $ responseLBS status302 [(hLocation, "/redirect-target")] ""
+  ["redirect-target"] -> respond $ responseLBS status200 [] . fromStrict . BS.intercalate "|" $
+    fmap snd (filter ((`elem` ["Authorization", "Cookie", "Proxy-Authorization"]) . fst)
+      (requestHeaders requestValue))
+  ["cookie-redirect"] -> respond $ responseLBS status302
+    [(hLocation, "/redirect-cookie-target"), ("Set-Cookie", "hop=yes; Path=/")] ""
+  ["redirect-cookie-target"] -> respond $ responseLBS status200 [] . fromStrict $
+    maybe "" id (lookup hCookie (requestHeaders requestValue))
   ["set-cookie"] -> respond $ responseLBS status200 [("Set-Cookie", "token=abc; Path=/")] "set"
   ["set-explicit"] -> respond $ responseLBS status200 [("Set-Cookie", "explicit=yes; Path=/")] "set"
   ["set-a"] -> respond $ responseLBS status200 [("Set-Cookie", "a=1; Path=/")] "set"

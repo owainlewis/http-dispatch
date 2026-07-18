@@ -51,6 +51,7 @@ import Network.HTTP.Client.TLS (getGlobalManager, tlsManagerSettings)
 import Network.HTTP.Types
   ( Header
   , HeaderName
+  , Status
   , mkStatus
   , statusCode
   , statusMessage
@@ -74,21 +75,25 @@ newSessionClient = newClientWith
 -- | Create a reusable client from explicit options.
 newClientWith :: ClientOptions -> IO Client
 newClientWith options = do
-  let settings
-        | useProxyEnvironment options =
-            managerSetProxy (proxyEnvironment Nothing) (managerSettings options)
-        | otherwise = managerSettings options
+  let settings = case clientProxyPolicy options of
+        ProxyEnvironment ->
+          managerSetProxy (proxyEnvironment Nothing) (managerSettings options)
+        ProxyFromRequest -> managerSetProxy proxyFromRequest (managerSettings options)
+        ProxyFromManager -> managerSettings options
   manager <- newManager settings
-  directManager <- if useProxyEnvironment options
-    then Just <$> newManager
+  directManager <- case clientProxyPolicy options of
+    ProxyFromRequest -> pure (Just manager)
+    _ -> Just <$> newManager
       (managerSetProxy proxyFromRequest (managerSettings options))
-    else pure Nothing
   jar <- if useCookieJar options
     then Just <$> newMVar (createCookieJar [])
     else pure Nothing
   pure (Client manager directManager jar)
 
 -- | Wrap an existing manager without taking cookie-session ownership.
+-- Per-request @withProxy@ and @withoutProxy@ overrides are rejected because an
+-- arbitrary manager may replace the request proxy. Use 'clientFromManagers'
+-- when overrides are required.
 clientFromManager :: Manager -> Client
 clientFromManager manager = Client manager Nothing Nothing
 
@@ -113,7 +118,11 @@ trySend client dispatchRequest = do
 
     attempt clientRequest attemptNumber = do
       requestForAttempt <- refreshSessionJar client dispatchRequest clientRequest
-      result <- performBuffered client dispatchRequest requestForAttempt
+      result <- performBuffered
+        client
+        dispatchRequest
+        requestForAttempt
+        (retryableStatusBeforeBody dispatchRequest clientRequest attemptNumber)
       if shouldRetry dispatchRequest clientRequest attemptNumber result
         then do
           delay <- retryDelayMicros policy attemptNumber result
@@ -152,27 +161,52 @@ withStreamingResponse client dispatchRequest action = do
   built <- prepareRequest client dispatchRequest
   case built of
     Left err -> pure (Left err)
-    Right request -> do
-      result <- try $ Client.withResponse request (managerForRequest client dispatchRequest) $ \response -> do
-        updateSession client dispatchRequest request response
-        let responseReader = timedBodyReader
-              (requestBodyTimeoutMicros dispatchRequest)
-              (Client.responseBody response)
-        if acceptsStatus (requestStatusPolicy dispatchRequest) (Client.responseStatus response)
-          then (Right <$> action (fromClientResponse response { Client.responseBody = responseReader }))
-            `catch` (pure . Left :: HTTPError -> IO (Either HTTPError value))
-          else do
-            consumed <- consumeBody
-              (requestBodyTimeoutMicros dispatchRequest)
-              (requestMaximumResponseBytes dispatchRequest)
-              (Client.responseBody response)
-            pure $ case consumed of
-              Left err -> Left err
-              Right bytes -> Left . UnexpectedStatus . fromClientResponse $
-                response { Client.responseBody = bytes }
-      pure $ case result of
-        Left (exception :: HttpException) -> Left (TransportError exception)
-        Right value -> value
+    Right request -> attempt request 0
+  where
+    policy = requestRetryPolicy dispatchRequest
+
+    attempt request attemptNumber = do
+      requestForAttempt <- refreshSessionJar client dispatchRequest request
+      result <- try $ Client.withResponse
+        requestForAttempt
+        (managerForRequest client dispatchRequest) $ \response -> do
+          updateSession client dispatchRequest requestForAttempt response
+          let metadata = fromClientResponse response { Client.responseBody = () }
+          if shouldRetry dispatchRequest request attemptNumber (Right metadata)
+            then pure (Left metadata)
+            else Right <$> handleResponse response
+      case result of
+        Left (exception :: HttpException) -> do
+          let failure = Left (TransportError exception)
+          if shouldRetry dispatchRequest request attemptNumber failure
+            then retryAfter request attemptNumber failure
+            else pure failure
+        Right (Left metadata) -> retryAfter request attemptNumber (Right metadata)
+        Right (Right value) -> pure value
+
+    retryAfter request attemptNumber result = do
+      delay <- retryDelayMicros policy attemptNumber result
+      when (delay > 0) (threadDelay delay)
+      attempt request (attemptNumber + 1)
+
+    handleResponse response = do
+      let responseReader = timedBodyReader
+            (requestBodyTimeoutMicros dispatchRequest)
+            (Client.responseBody response)
+      if acceptsStatus (requestStatusPolicy dispatchRequest) (Client.responseStatus response)
+        then ((Right <$> action
+          (fromClientResponse response { Client.responseBody = responseReader }))
+            `catch` (pure . Left :: HTTPError -> IO (Either HTTPError value)))
+          `catch` (pure . Left . TransportError :: HttpException -> IO (Either HTTPError value))
+        else do
+          consumed <- consumeBody
+            (requestBodyTimeoutMicros dispatchRequest)
+            (requestMaximumResponseBytes dispatchRequest)
+            (Client.responseBody response)
+          pure $ case consumed of
+            Left err -> Left err
+            Right bytes -> Left . UnexpectedStatus . fromClientResponse $
+              response { Client.responseBody = bytes }
 
 -- | One-shot convenience using http-client-tls's process-wide reusable
 -- manager. Long-lived applications should prefer an explicit 'Client'.
@@ -189,8 +223,9 @@ globalDirectManager = unsafePerformIO $
 -- | Compatibility helper for custom manager settings.
 httpManager :: HTTPRequest -> ManagerSettings -> IO (HTTPResponse BS.ByteString)
 httpManager request settings = do
-  client <- newClientWith (defaultClientOptions settings)
-  send client request
+  manager <- newManager settings
+  directManager <- newManager (managerSetProxy proxyFromRequest settings)
+  send (clientFromManagers manager directManager) request
 
 -- | Decode a buffered body as JSON while preserving response metadata.
 decodeJson :: FromJSON value => HTTPResponse BS.ByteString -> Either HTTPError (HTTPResponse value)
@@ -208,18 +243,23 @@ performBuffered
   :: Client
   -> HTTPRequest
   -> Request
+  -> (Status -> Bool)
   -> IO (Either HTTPError (HTTPResponse BS.ByteString))
-performBuffered client dispatchRequest request = do
+performBuffered client dispatchRequest request retryBeforeBody = do
   result <- try $ Client.withResponse request (managerForRequest client dispatchRequest) $ \response -> do
     updateSession client dispatchRequest request response
-    consumed <- consumeBody
-      (requestBodyTimeoutMicros dispatchRequest)
-      (requestMaximumResponseBytes dispatchRequest)
-      (Client.responseBody response)
-    pure $ case consumed of
-      Left err -> Left err
-      Right bytes -> applyBufferedStatus dispatchRequest . fromClientResponse $
-        response { Client.responseBody = bytes }
+    if retryBeforeBody (Client.responseStatus response)
+      then pure . applyBufferedStatus dispatchRequest . fromClientResponse $
+        response { Client.responseBody = BS.empty }
+      else do
+        consumed <- consumeBody
+          (requestBodyTimeoutMicros dispatchRequest)
+          (requestMaximumResponseBytes dispatchRequest)
+          (Client.responseBody response)
+        pure $ case consumed of
+          Left err -> Left err
+          Right bytes -> applyBufferedStatus dispatchRequest . fromClientResponse $
+            response { Client.responseBody = bytes }
   pure $ case result of
     Left (exception :: HttpException) -> Left (TransportError exception)
     Right value -> value
@@ -300,8 +340,11 @@ buildSafely request =
 prepareRequest :: Client -> HTTPRequest -> IO (Either HTTPError Request)
 prepareRequest client request = do
   built <- buildSafely request
-  case (built, clientCookieJar client) of
-    (Right value, Just jarVar) | not (requestCookieJarExplicit request) -> do
+  case (built, clientCookieJar client, clientDirectManager client) of
+    (Right _, _, Nothing) | requestOverridesClientProxy request ->
+      pure (Left (RequestBuildError
+        (Text.pack "Per-request proxy overrides require newClientWith or clientFromManagers")))
+    (Right value, Just jarVar, _) | not (requestCookieJarExplicit request) -> do
       jar <- readMVar jarVar
       pure (Right value { Client.cookieJar = Just jar })
     _ -> pure built
@@ -365,9 +408,7 @@ shouldRetry
   -> Either HTTPError (HTTPResponse body)
   -> Bool
 shouldRetry request clientRequest attemptNumber result =
-  attemptNumber < retryLimit policy
-    && requestReplayable request
-    && Client.method clientRequest `elem` fmap requestMethodBytes (retryMethods policy)
+  retryableAttempt request clientRequest attemptNumber
     && retryableResult result
   where
     policy = requestRetryPolicy request
@@ -377,6 +418,19 @@ shouldRetry request clientRequest attemptNumber result =
     retryableResult (Right response) = retryableStatus response
     retryableResult _ = False
     retryableStatus response = responseStatus response `elem` retryStatusCodes policy
+
+retryableStatusBeforeBody :: HTTPRequest -> Request -> Int -> Status -> Bool
+retryableStatusBeforeBody request clientRequest attemptNumber status =
+  retryableAttempt request clientRequest attemptNumber
+    && statusCode status `elem` retryStatusCodes (requestRetryPolicy request)
+
+retryableAttempt :: HTTPRequest -> Request -> Int -> Bool
+retryableAttempt request clientRequest attemptNumber =
+  attemptNumber < retryLimit policy
+    && requestReplayable request
+    && Client.method clientRequest `elem` fmap requestMethodBytes (retryMethods policy)
+  where
+    policy = requestRetryPolicy request
 
 retryDelayMicros
   :: RetryPolicy

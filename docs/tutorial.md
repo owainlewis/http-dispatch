@@ -70,11 +70,11 @@ request =
     & basicAuth username password
 ```
 
-`bearerAuth` and `proxyBasicAuth` are also available. Authorization, cookies,
-proxy authorization, and host overrides are stripped on every redirect. This
-safe default prevents HTTPS downgrade and cross-port leaks. Disable automatic
-redirects and handle the target explicitly when a same-origin redirect must
-retain credentials.
+`bearerAuth` and `proxyBasicAuth` are also available. Explicit authorization,
+cookie, proxy authorization, and host headers are stripped on every redirect.
+An RFC cookie jar can still attach cookies that match the redirect target. Use
+`withoutRedirects` and validate the target explicitly when no credentials may
+be forwarded automatically.
 
 ## Bodies
 
@@ -121,7 +121,8 @@ Add `expect2xx` or `expectStatus [200, 202]` when other statuses should become
 Decode after transport and status handling:
 
 ```haskell
-case trySend client request of
+result <- trySend client request
+case result of
   ...
 
 response <- send client request
@@ -166,7 +167,9 @@ fixed budget.
 
 Redirect behavior follows `http-client`: counts are bounded, relative
 locations are resolved, and status-specific method/body rules are applied.
-Sensitive headers are stripped on every redirect by this package.
+Explicit sensitive headers are stripped on every redirect by this package.
+Cookie jars separately apply their domain, path, expiry, and `Secure` rules to
+the redirect target.
 
 ## Proxies and TLS
 
@@ -176,10 +179,12 @@ matching, not wildcard, port, or CIDR matching. Override a single request with
 `withProxy (Proxy host port)` or `withoutProxy`. Add proxy credentials with
 `proxyBasicAuth`.
 
-For custom certificate authorities, mutual TLS, connection limits, header
-limits, or a proxy selector, create `ClientOptions` from
-`defaultClientOptions tlsManagerSettings`, update its `managerSettings`, then
-pass it to `newClientWith`.
+For custom certificate authorities, mutual TLS, connection limits, or header
+limits, create `ClientOptions` from `defaultClientOptions tlsManagerSettings`
+and update its `managerSettings`. Set `clientProxyPolicy` to
+`ProxyEnvironment`, `ProxyFromRequest`, or `ProxyFromManager`. Use
+`ProxyFromManager` to preserve a custom selector in `managerSettings`, then pass
+the options to `newClientWith`.
 
 ```haskell
 import Network.HTTP.Client.TLS (tlsManagerSettings)

@@ -85,7 +85,6 @@ import Network.HTTP.Client
   , parseRequest
   , responseTimeoutMicro
   , responseTimeoutNone
-  , setQueryString
   )
 import qualified Network.HTTP.Client as Client
 import Network.HTTP.Client.MultipartFormData
@@ -102,9 +101,10 @@ import Network.HTTP.Types
   , QueryItem
   , hAuthorization
   , hContentType
+  , renderQuery
   , renderSimpleQuery
   )
-import Network.HTTP.Types.URI (encodePathSegments, parseQuery)
+import Network.HTTP.Types.URI (encodePathSegments)
 
 import Network.HTTP.Dispatch.Internal
 import Network.HTTP.Dispatch.Types (Headers, Url)
@@ -246,8 +246,12 @@ withMultipartBody parts req = req
 
 -- | Replace the method.
 withMethod :: RequestMethod -> HTTPRequest -> HTTPRequest
-withMethod requestMethod = mapClientRequest $ \req ->
-  req { Client.method = requestMethodBytes requestMethod }
+withMethod requestMethod requestValue
+  | validRequestMethod requestMethod = mapClientRequest
+      (\req -> req { Client.method = requestMethodBytes requestMethod })
+      requestValue
+  | otherwise = requestValue
+      { buildHTTPRequest = pure (Left (RequestBuildError "Invalid HTTP method")) }
 
 -- | Apply HTTP Basic authorization.
 basicAuth :: BS.ByteString -> BS.ByteString -> HTTPRequest -> HTTPRequest
@@ -370,7 +374,15 @@ setBody replayable body req =
 
 addQueryItem :: QueryItem -> HTTPRequest -> HTTPRequest
 addQueryItem item = mapClientRequest $ \req ->
-  setQueryString (parseQuery (Client.queryString req) <> [item]) req
+  req { Client.queryString = appendRenderedQuery (Client.queryString req) item }
+
+appendRenderedQuery :: BS.ByteString -> QueryItem -> BS.ByteString
+appendRenderedQuery existing item
+  | BS.null existing = rendered
+  | BS.last existing `elem` [63, 38] = existing <> BS.drop 1 rendered
+  | otherwise = existing <> "&" <> BS.drop 1 rendered
+  where
+    rendered = renderQuery True [item]
 
 sensitiveHeader :: HeaderName -> Bool
 sensitiveHeader name = name `elem` [hAuthorization, "Cookie", "Proxy-Authorization", "Host"]

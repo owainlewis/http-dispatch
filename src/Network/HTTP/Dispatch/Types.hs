@@ -2,7 +2,8 @@
 -- internals can evolve without breaking user code.
 module Network.HTTP.Dispatch.Types
   ( Client
-  , ClientOptions (managerSettings, useProxyEnvironment, useCookieJar)
+  , ClientOptions (managerSettings, clientProxyPolicy, useCookieJar)
+  , ClientProxyPolicy (..)
   , defaultClientOptions
   , HTTPRequest
   , HTTPResponse (..)

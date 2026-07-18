@@ -30,6 +30,12 @@ spec = do
       Client.queryString built
         `shouldBe` "?existing=1&tag=haskell%20%26%20http&tag=second&active"
 
+    it "preserves existing query bytes when appending values" $ do
+      built <- inspectRequest
+        (get "https://example.com/?signature=%2f%2B&empty" & queryParam "next" "a b")
+        >>= expectRight
+      Client.queryString built `shouldBe` "?signature=%2f%2B&empty&next=a%20b"
+
     it "preserves duplicate headers and strips secrets on every redirect" $ do
       built <- inspectRequest (
         get "https://example.com"
@@ -83,6 +89,13 @@ spec = do
           Left (RequestBuildError _) -> pure ()
           other -> expectationFailure ("expected RequestBuildError, got " <> show other))
         ["", "GET /other", "GET\r\nX-Injected: yes", "MÉTHOD"]
+
+    it "rejects unsafe methods applied to existing requests" $ do
+      built <- inspectRequest
+        (get "https://example.com" & withMethod (CUSTOM "GET\r\nX-Injected: yes"))
+      case built of
+        Left (RequestBuildError _) -> pure ()
+        other -> expectationFailure ("expected RequestBuildError, got " <> show other)
 
     it "preserves the chosen method for multipart bodies" $ do
       built <- inspectRequest

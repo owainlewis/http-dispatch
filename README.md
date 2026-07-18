@@ -44,8 +44,8 @@ lens dependency, custom effect system, or second transport stack.
   restricted to configured methods and replayable bodies.
 - JSON, URL-encoded forms, multipart uploads, file streams, strict, lazy, and
   custom streaming bodies are supported.
-- Redirects strip authorization, cookie, proxy authorization, and host headers
-  when the destination host changes.
+- Redirects strip explicit authorization, cookie, proxy authorization, and host
+  headers on every hop.
 - Cookie persistence is opt-in through `newSessionClient`.
 
 ## Requests
@@ -126,17 +126,25 @@ argument declares whether the body can be recreated safely for a retry. Use
 `newClient` owns long-lived TLS-capable managers. They are reclaimed
 automatically after the client becomes unreachable. It delegates `HTTP_PROXY`,
 `HTTPS_PROXY`, and `NO_PROXY` suffix matching to `http-client`. Use
-`newClientWith` with customized
-`tlsManagerSettings` or another `ManagerSettings` value for custom trust stores,
-client certificates, connection limits, header limits, or proxy selection.
+`newClientWith` with customized `tlsManagerSettings` or another
+`ManagerSettings` value for custom trust stores, client certificates,
+connection limits, and header limits. Select `ProxyEnvironment`,
+`ProxyFromRequest`, or `ProxyFromManager` with `clientProxyPolicy`. The last
+option preserves a custom selector already present in `managerSettings`.
 
-Use `withProxy` or `withoutProxy` for a single request. Proxy authentication is
-added with `proxyBasicAuth`. HTTPS proxying and CONNECT behavior are delegated
-to `http-client-tls`.
+Use `withProxy` or `withoutProxy` for a single request. These overrides are
+supported by `newClientWith` and `clientFromManagers`; `clientFromManager`
+rejects them because an arbitrary manager may replace the request proxy. Proxy
+authentication is added with `proxyBasicAuth`. HTTPS proxying and CONNECT
+behavior are delegated to `http-client-tls`.
 
 `newClient` does not retain cookies. `newSessionClient` creates a concurrent,
 delta-merged cookie session backed by `http-client`'s RFC 6265 jar. A request-level
-`withCookieJar` overrides the session jar for that request.
+`withCookieJar` overrides the session jar for that request. Cookie jars apply
+domain, path, expiry, and `Secure` rules again at each redirect, so a matching
+jar cookie may be attached even though an explicit `Cookie` header is stripped.
+Use `withoutRedirects` and validate the next target when no credential may be
+forwarded automatically.
 
 ## Retries
 
@@ -158,12 +166,18 @@ non-replayable unless explicitly declared otherwise. POST and PATCH require an
 explicit method policy and a replayable body, which prevents accidental
 duplicate writes.
 
+For streaming responses, retryable statuses and transport failures are handled
+before the callback begins. Once the callback starts it is invoked at most once;
+body-read failures are returned and are never retried because the callback may
+already have produced side effects.
+
 ## Security boundaries
 
-TLS certificates and hostnames are verified by default. Sensitive headers are
-stripped on every redirect, including same-origin redirects. This conservative
-default prevents scheme and port downgrade leaks, but authenticated canonical
-redirects should be handled explicitly. Exception rendering is delegated to
+TLS certificates and hostnames are verified by default. Explicit sensitive
+headers are stripped on every redirect, including same-origin redirects. Cookie
+jars still apply their RFC matching rules to the new target. For a strict
+no-credential-forwarding boundary, disable automatic redirects and validate the
+target before issuing a new request. Exception rendering is delegated to
 `http-client`, which redacts authorization by default.
 
 This package is not, by itself, an SSRF firewall. Applications that send
