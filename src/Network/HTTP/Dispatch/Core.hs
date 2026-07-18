@@ -24,6 +24,7 @@ import Control.Monad (when)
 import Data.Aeson (FromJSON, eitherDecodeStrict')
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.CaseInsensitive as CI
 import Data.Int (Int64)
 import Data.List (find)
 import Data.Text (Text)
@@ -50,7 +51,6 @@ import Network.HTTP.Client.TLS (getGlobalManager, tlsManagerSettings)
 import Network.HTTP.Types
   ( Header
   , HeaderName
-  , hRetryAfter
   , mkStatus
   , statusCode
   , statusMessage
@@ -385,7 +385,7 @@ retryDelayMicros
   -> IO Int
 retryDelayMicros policy attemptNumber result = do
   now <- getCurrentTime
-  let fromHeader = lookupHeader hRetryAfter (resultHeaders result)
+  let fromHeader = lookupHeader (CI.mk (B8.pack "Retry-After")) (resultHeaders result)
         >>= parseRetryAfterMicros now
       maximumDelay = max 0 (retryMaxDelayMicros policy)
       exponential = toInteger (retryBaseDelayMicros policy) * (2 ^ min 63 attemptNumber)

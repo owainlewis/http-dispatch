@@ -60,7 +60,8 @@ spec = around withTestServer $ do
       result `shouldSatisfy` isTransportError
 
     it "times out a body that stalls after response headers" $ \baseUrl -> withFreshClient $ \client -> do
-      result <- trySend client (get (baseUrl <> "/stall") & withTimeout 1000)
+      result <- trySend client
+        (get (baseUrl <> "/stall") & withTimeout 1000000 & withBodyTimeout 1000)
       result `shouldSatisfy` isBodyTimeout
 
   describe "streaming" $ do
@@ -77,7 +78,8 @@ spec = around withTestServer $ do
       responseBody response `shouldBe` ()
 
     it "returns streaming body inactivity as an explicit error" $ \baseUrl -> withFreshClient $ \client -> do
-      result <- withStreamingResponse client (get (baseUrl <> "/stall") & withTimeout 1000) $ \response -> do
+      result <- withStreamingResponse client
+        (get (baseUrl <> "/stall") & withTimeout 1000000 & withBodyTimeout 1000) $ \response -> do
         _ <- brRead (responseBody response)
         brRead (responseBody response)
       result `shouldSatisfy` isBodyTimeout

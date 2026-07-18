@@ -74,6 +74,7 @@ Available request controls include:
   `withFormBody`, and `withMultipartBody`;
 - auth: `basicAuth`, `bearerAuth`, and `proxyBasicAuth`;
 - transport: `withProxy`, `withoutProxy`, `withTimeout`, `withoutTimeout`,
+  `withBodyTimeout`, `withoutBodyTimeout`,
   `withRedirects`, `withoutRedirects`, `withCookieJar`, and `rawResponseBody`;
 - policy: `expect2xx`, `expectStatus`, `acceptAnyStatus`, `retrying`,
   `maximumResponseBytes`, and `unlimitedResponseBody`;

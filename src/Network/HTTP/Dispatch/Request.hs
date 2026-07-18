@@ -38,6 +38,8 @@ module Network.HTTP.Dispatch.Request
   , withoutProxy
   , withTimeout
   , withoutTimeout
+  , withBodyTimeout
+  , withoutBodyTimeout
   , withRedirects
   , withoutRedirects
   , withCookieJar
@@ -286,6 +288,17 @@ withoutTimeout :: HTTPRequest -> HTTPRequest
 withoutTimeout requestValue =
   (mapClientRequest (\req -> req { Client.responseTimeout = responseTimeoutNone }) requestValue)
     { requestBodyTimeoutMicros = Nothing }
+
+-- | Set only the per-body-read inactivity timeout in microseconds. This is
+-- useful when connection and response-header work needs a different budget.
+withBodyTimeout :: Int -> HTTPRequest -> HTTPRequest
+withBodyTimeout microseconds requestValue =
+  requestValue { requestBodyTimeoutMicros = Just (max 0 microseconds) }
+
+-- | Disable only the per-body-read inactivity timeout.
+withoutBodyTimeout :: HTTPRequest -> HTTPRequest
+withoutBodyTimeout requestValue =
+  requestValue { requestBodyTimeoutMicros = Nothing }
 
 -- | Set the maximum redirect count.
 withRedirects :: Int -> HTTPRequest -> HTTPRequest
