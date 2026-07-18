@@ -1,82 +1,217 @@
-# HTTP Dispatch
+# http-dispatch
 
-> This is the HTTP library I wish I had when first learning Haskell
-
-[![CircleCI](https://circleci.com/gh/owainlewis/http-dispatch.svg?style=svg)](https://circleci.com/gh/owainlewis/http-dispatch)
-
-Available on Hackage: You'll want to use a version at 0.6.2.0 or greater
-
-https://hackage.haskell.org/package/http-dispatch-0.6.2.0
-
-A high level Haskell HTTP client with a friendly and consistent API.
-This library builds upon the http-client library, providing an (IMO) easier and more intuative API
-
-*There are only two types (HTTPRequest and HTTPResponse). Everything else is sugar for constructing these types*
-
-### Differences from http-client
-
-* Simple DSL (only two types HTTPRequest and HTTPResponse)
-* Higher level API
-* No exceptions thrown on non 200 status codes
-* Supports TLS out of the box
-
-### Differences from wreq
-
-* Lighter
-* Doesn't require lens package
-
-## Motivation
-
-There are already a couple of really good HTTP clients for Haskell ([Wreq](http://www.serpentine.com/wreq/), [HTTP Client](https://github.com/snoyberg/http-client)), but typically I'd need to go hunting through documentation just to do even the simplest thing (or having to import a different package for https).
-This is the HTTP library I wish I had when first learning Haskell.
-
-This library strips back everything to be as simple as possible.
-It will transparently support HTTPS and has a very consistent DSL for making requests.
-
-There are only two types. A HTTPRequest and a HTTPResponse. That's all there is to know about this library.
-
-Some utility functions are provided to make constructing requests easier but it's nothing more than sugar for creating types.
-
-### HTTP Request
-
-A HTTP request has a method, url, a list of headers and an optional body. Header is a type synonym for a ByteString pair i.e (S.ByteString, S.ByteString). The body is a strict ByteString.
-
-```haskell
-data HTTPRequest = HTTPRequest {
-    method  :: RequestMethod
-  , url     :: String
-  , headers :: [(S.ByteString, S.ByteString)]
-  , body    :: Maybe S.ByteString
-} deriving ( Eq, Ord, Show )
-```
-
-### HTTP Response
-
-A HTTP response has a status, a list of headers, and a response body. Header is a type synonym for a ByteString pair i.e (S.ByteString, S.ByteString). The body is a strict ByteString.
-
-```haskell
-data HTTPResponse = HTTPResponse {
-    responseStatus  :: Int
-  , responseHeaders :: [(S.ByteString, S.ByteString)]
-  , resposeBody    :: S.ByteString
-} deriving ( Eq, Show )
-```
-
-## Examples
-
-Some examples to help you get started.
-
-Remember that *everything* is just sugar for constructing the HTTPRequest type and calling run on it to convert it to a IO HttpResponse.
+`http-dispatch` is a small, composable HTTP client DSL for Haskell. It keeps
+the common path obvious while exposing the production controls that real
+clients need.
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
-module Example
 
-import qualified          Network.HTTP.Dispatch as Dispatch
+import Data.Function ((&))
+import Network.HTTP.Dispatch
 
-response :: IO Dispatch.HttpResponse
-response = http request where reqeuest = get "http://google.com"
-
+main :: IO ()
+main = do
+  client <- newClient
+  response <- send client $
+    get "https://api.example.com/users"
+      & pathSegment "owain lewis"
+      & queryParam "include" "teams"
+      & bearerAuth "token"
+      & withTimeout 10000000
+      & expect2xx
+  print (responseStatus response, responseBody response)
 ```
 
-If you have any questions comments or feedback let me know <owain@owainlewis.com>
+The DSL is a thin layer over
+[`http-client`](https://hackage.haskell.org/package/http-client). There is no
+lens dependency, custom effect system, or second transport stack.
+
+## Why use it?
+
+- A `Client` reuses connections and handles HTTP and HTTPS with one manager.
+- Plain functions compose with `(&)` from `Data.Function`.
+- Invalid URLs, transport failures, status policies, body limits, and decode
+  failures have distinct errors.
+- Non-2xx responses remain ordinary responses unless you add `expect2xx` or
+  `expectStatus`.
+- Buffered responses have a safe 16 MiB default limit. Streaming is bracketed
+  and constant-memory.
+- Proxy environment variables and `NO_PROXY` suffix exclusions are delegated
+  to `http-client`. Explicit and
+  disabled per-request proxies are supported.
+- Retries are off by default, bounded, jittered, respect `Retry-After`, and are
+  restricted to configured methods and replayable bodies.
+- JSON, URL-encoded forms, multipart uploads, file streams, strict, lazy, and
+  custom streaming bodies are supported.
+- Redirects strip explicit authorization, cookie, proxy authorization, and host
+  headers on every hop.
+- Cookie persistence is opt-in through `newSessionClient`.
+
+## Requests
+
+Every builder returns an opaque `HTTPRequest`, so the library can add transport
+controls without breaking record construction.
+
+```haskell
+request =
+  post "https://api.example.com/v1/events"
+    & withJsonBody event
+    & withHeader ("Idempotency-Key", key)
+    & basicAuth username password
+    & withRedirects 3
+    & maximumResponseBytes (2 * 1024 * 1024)
+    & expect2xx
+```
+
+Available request controls include:
+
+- methods: `get`, `head`, `post`, `put`, `patch`, `delete`, `options`, and
+  `customMethod`;
+- URL construction: `pathSegment`, `queryParam`, `queryParamText`, and
+  `queryFlag`;
+- bodies: `withBody`, `withLazyBody`, `withRequestBody`, `withJsonBody`,
+  `withFormBody`, and `withMultipartBody`;
+- auth: `basicAuth`, `bearerAuth`, and `proxyBasicAuth`;
+- transport: `withProxy`, `withoutProxy`, `withTimeout`, `withoutTimeout`,
+  `withBodyTimeout`, `withoutBodyTimeout`,
+  `withRedirects`, `withoutRedirects`, `withCookieJar`, and `rawResponseBody`;
+- policy: `expect2xx`, `expectStatus`, `acceptAnyStatus`, `retrying`,
+  `maximumResponseBytes`, and `unlimitedResponseBody`;
+- advanced escape hatch: `modifyClientRequest`.
+
+Query items preserve order and repeated keys. `queryFlag "debug"` produces
+`?debug`, while `queryParam "debug" ""` produces `?debug=`. `pathSegment`
+accepts `Text` and percent-encodes UTF-8 exactly once.
+
+## Responses and errors
+
+`send` returns a buffered response and throws `HTTPError`. Use `trySend` when
+errors should be values.
+
+```haskell
+result <- trySend client request
+case result of
+  Left (InvalidUrl target reason) -> ...
+  Left (TransportError cause) -> ...
+  Left (UnexpectedStatus response) -> ...
+  Left (ResponseTooLarge limit) -> ...
+  Left BodyTimeout -> ...
+  Left (DecodeError reason) -> ...
+  Left (RequestBuildError reason) -> ...
+  Right response -> ...
+```
+
+`decodeJson` and `decodeText` preserve the response status, headers, cookies,
+and HTTP version while changing only its body type.
+
+## Streaming
+
+Use `withStreamingResponse` for large or unbounded responses. The `BodyReader`
+is valid only inside the callback. The connection is always released when the
+callback returns or throws.
+
+```haskell
+result <- withStreamingResponse client request $ \response ->
+  copyBodyReaderToFile (responseBody response) "archive.tar"
+```
+
+For streamed uploads, pass an `http-client` `RequestBodyStream`,
+`RequestBodyStreamChunked`, or `RequestBodyIO` to `withRequestBody`. The Boolean
+argument declares whether the body can be recreated safely for a retry. Use
+`False` for one-shot producers.
+
+## Clients, proxies, TLS, and cookies
+
+`newClient` owns long-lived TLS-capable managers. They are reclaimed
+automatically after the client becomes unreachable. It delegates `HTTP_PROXY`,
+`HTTPS_PROXY`, and `NO_PROXY` suffix matching to `http-client`. Use
+`newClientWith` with customized `tlsManagerSettings` or another
+`ManagerSettings` value for custom trust stores, client certificates,
+connection limits, and header limits. Select `ProxyEnvironment`,
+`ProxyFromRequest`, or `ProxyFromManager` with `clientProxyPolicy`. The last
+option preserves a custom selector already present in `managerSettings`.
+
+Use `withProxy` or `withoutProxy` for a single request. These overrides are
+supported by `newClientWith` and `clientFromManagers`; `clientFromManager`
+rejects them because an arbitrary manager may replace the request proxy. Proxy
+authentication is added with `proxyBasicAuth` after an explicit `withProxy`.
+Requiring the explicit target prevents proxy credentials from reaching an
+origin when environment proxy selection is bypassed. HTTPS proxying and CONNECT
+behavior are delegated to `http-client-tls`.
+
+`newClient` does not retain cookies. `newSessionClient` creates a concurrent,
+delta-merged cookie session backed by `http-client`'s RFC 6265 jar. A request-level
+`withCookieJar` overrides the session jar for that request. Cookie jars apply
+domain, path, expiry, and `Secure` rules again at each redirect, so a matching
+jar cookie may be attached even though an explicit `Cookie` header is stripped.
+Use `withoutRedirects` and validate the next target when no credential may be
+forwarded automatically.
+
+## Retries
+
+Retries are deliberately disabled by default.
+
+```haskell
+policy = defaultRetryPolicy
+  { retryLimit = 3
+  , retryBaseDelayMicros = 100000
+  , retryMaxDelayMicros = 5000000
+  }
+
+request = get url & retrying policy
+```
+
+The default retry status set is 408, 429, 502, 503, and 504. The default method
+set is HEAD, GET, PUT, DELETE, TRACE, and OPTIONS. Streaming bodies are marked
+non-replayable unless explicitly declared otherwise. POST and PATCH require an
+explicit method policy and a replayable body, which prevents accidental
+duplicate writes.
+
+For streaming responses, retryable statuses and transport failures are handled
+before the callback begins. Once the callback starts it is invoked at most once;
+body-read failures are returned and are never retried because the callback may
+already have produced side effects.
+
+## Security boundaries
+
+TLS certificates and hostnames are verified by default. Explicit sensitive
+headers are stripped on every redirect, including same-origin redirects. Cookie
+jars still apply their RFC matching rules to the new target. For a strict
+no-credential-forwarding boundary, disable automatic redirects and validate the
+target before issuing a new request. Exception rendering is delegated to
+`http-client`, which redacts authorization by default.
+
+This package is not, by itself, an SSRF firewall. Applications that send
+requests to user-controlled destinations should validate schemes, hosts,
+resolved addresses, ports, redirects, and proxy behavior against an allowlist.
+Use `modifyClientRequest` and custom manager hooks for application-specific
+destination enforcement.
+
+The transport is HTTP/1.1. The public request and response types are kept
+opaque/generic so a mature HTTP/2 backend can be added later without forcing a
+new DSL.
+
+## Migrating from 1.x
+
+Version 2 is a major API redesign. The familiar `get`, `delete`, `options`,
+`raw`, and `http` entry points remain. The typo `resposeBody` remains as a
+deprecated alias for `responseBody`.
+
+Important changes:
+
+- `HTTPRequest` is opaque instead of a four-field record.
+- `HTTPResponse` is parameterized by its body type and contains cookies and the
+  HTTP version.
+- `post`, `put`, and `patch` now take only a URL. Add a body with `withBody` or a
+  typed body helper.
+- modifiers take the value first and request last so they compose with `(&)`.
+- `responseStatus` is still an `Int`. `responseStatusMessage` is now retained.
+- buffered responses default to a 16 MiB decompressed body limit.
+- a reusable client is the primary API. `http` remains a one-shot convenience
+  backed by the shared TLS manager.
+
+`Network.HTTP.Dispatch.Compat` provides deprecated `legacyPost`, `legacyPut`,
+`legacyPatch`, and legacy modifier argument orders for incremental migrations.
+
+See [`docs/tutorial.md`](docs/tutorial.md) for complete examples.

@@ -1,43 +1,73 @@
-name:                http-dispatch
-version:             1.0.0
-synopsis:            High level HTTP client for Haskell
-description:         A high level HTTP client with a simple API
-homepage:            http://github.com/owainlewis/http-dispatch#readme
-license:             BSD3
-license-file:        LICENSE
-author:              Owain Lewis
-maintainer:          owain@owainlewis.com
-copyright:           2016 Owain Lewis
-category:            Network
-build-type:          Simple
-cabal-version:       >=1.10
-
-library
-  hs-source-dirs:      src
-  exposed-modules:     Network.HTTP.Dispatch
-                     , Network.HTTP.Dispatch.Request
-                     , Network.HTTP.Dispatch.Core
-                     , Network.HTTP.Dispatch.Types
-  build-depends:       base >= 4.5 && < 5
-                     , http-client >= 0.5.7.0
-                     , http-client-tls >= 0.3.5.1
-                     , http-types >= 0.9.1
-                     , bytestring
-                     , base64-bytestring
-                     , case-insensitive
-  default-language:    Haskell2010
-
-test-suite http-dispatch-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-  build-depends:       base
-                     , http-dispatch
-                     , hspec
-                     , aeson
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  default-language:    Haskell2010
+cabal-version:      2.4
+name:               http-dispatch
+version:            2.0.0.0
+synopsis:           A small, composable HTTP client DSL
+description:
+  A production-oriented HTTP client DSL built on http-client. It provides a
+  reusable TLS-capable client, composable request transformations, explicit
+  errors, safe streaming, retries, proxy controls, cookies, JSON, forms, and
+  multipart uploads without a lens or custom effect stack.
+homepage:           https://github.com/owainlewis/http-dispatch
+bug-reports:        https://github.com/owainlewis/http-dispatch/issues
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Owain Lewis
+maintainer:         owain@owainlewis.com
+copyright:          2016-2026 Owain Lewis
+category:           Network
+build-type:         Simple
+extra-source-files:
+    README.md
+    docs/tutorial.md
+    Examples/Simple.hs
+extra-doc-files:    CHANGELOG.md
 
 source-repository head
   type:     git
-  location: https://github.com/owainlewis/http-dispatch
+  location: https://github.com/owainlewis/http-dispatch.git
+
+library
+  hs-source-dirs:   src
+  exposed-modules:
+      Network.HTTP.Dispatch
+      Network.HTTP.Dispatch.Core
+      Network.HTTP.Dispatch.Request
+      Network.HTTP.Dispatch.Types
+      Network.HTTP.Dispatch.Compat
+  other-modules:
+      Network.HTTP.Dispatch.Internal
+  build-depends:
+      aeson >= 2.0 && < 2.3
+    , base >= 4.18 && < 5
+    , bytestring >= 0.10 && < 0.13
+    , case-insensitive >= 1.2 && < 1.3
+    , containers >= 0.6 && < 0.9
+    , http-client >= 0.7.15 && < 0.8
+    , http-client-tls >= 0.3.6 && < 0.5
+    , http-types >= 0.12 && < 0.13
+    , random >= 1.2 && < 1.4
+    , text >= 1.2 && < 2.2
+    , time >= 1.9 && < 1.15
+  default-language: GHC2021
+  ghc-options:      -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates
+
+test-suite http-dispatch-test
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+      Network.HTTP.Dispatch.CoreSpec
+      Network.HTTP.Dispatch.RequestSpec
+  build-depends:
+      aeson
+    , base
+    , bytestring
+    , hspec >= 2.10 && < 2.12
+    , http-client
+    , http-dispatch
+    , http-types
+    , text
+    , wai >= 3.2 && < 3.3
+    , warp >= 3.3.21 && < 3.5
+  default-language: GHC2021
+  ghc-options:      -Wall -threaded -rtsopts -with-rtsopts=-N

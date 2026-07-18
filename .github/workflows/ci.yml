@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: GHC ${{ matrix.ghc }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc: ["9.6", "9.8", "9.10", "9.12", "9.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: "3.14"
+
+      - name: Configure cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/packages
+            ~/.cabal/store
+            dist-newstyle
+          key: ${{ runner.os }}-ghc-${{ matrix.ghc }}-${{ hashFiles('http-dispatch.cabal') }}
+          restore-keys: ${{ runner.os }}-ghc-${{ matrix.ghc }}-
+
+      - name: Update package index
+        run: cabal update
+      - name: Check package metadata
+        run: cabal check
+      - name: Build
+        run: cabal build all --enable-tests
+      - name: Test
+        run: cabal test all --test-show-details=direct
+      - name: Haddock
+        run: cabal haddock lib:http-dispatch --haddock-hyperlink-source
+
+  lower-bounds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.6"
+          cabal-version: "3.14"
+      - run: cabal update
+      # unix-time-0.0.0 includes the long-removed Linux xlocale.h header. Keep
+      # prefer-oldest useful without selecting an unbuildable transitive release.
+      - name: Build oldest allowed direct dependencies
+        run: cabal build all --enable-tests --prefer-oldest '--constraint=unix-time>=0.4.15'
+      - name: Test oldest allowed direct dependencies
+        run: cabal test all --prefer-oldest '--constraint=unix-time>=0.4.15' --test-show-details=direct
