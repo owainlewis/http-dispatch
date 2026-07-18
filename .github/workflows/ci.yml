@@ -54,7 +54,9 @@ jobs:
           ghc-version: "9.6"
           cabal-version: "3.14"
       - run: cabal update
+      # unix-time-0.0.0 includes the long-removed Linux xlocale.h header. Keep
+      # prefer-oldest useful without selecting an unbuildable transitive release.
       - name: Build oldest allowed direct dependencies
-        run: cabal build all --enable-tests --prefer-oldest
+        run: cabal build all --enable-tests --prefer-oldest '--constraint=unix-time>=0.4.15'
       - name: Test oldest allowed direct dependencies
-        run: cabal test all --prefer-oldest --test-show-details=direct
+        run: cabal test all --prefer-oldest '--constraint=unix-time>=0.4.15' --test-show-details=direct
