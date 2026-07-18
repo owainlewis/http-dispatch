@@ -15,7 +15,6 @@ import Network.HTTP.Dispatch
 import Network.HTTP.Types
   ( hContentType
   , hCookie
-  , hSetCookie
   , status200
   , status400
   , status503
@@ -207,10 +206,10 @@ testApp requestValue respond = case pathInfo requestValue of
     write "abc"
     flush
     write "def"
-  ["set-cookie"] -> respond $ responseLBS status200 [(hSetCookie, "token=abc; Path=/")] "set"
-  ["set-explicit"] -> respond $ responseLBS status200 [(hSetCookie, "explicit=yes; Path=/")] "set"
-  ["set-a"] -> respond $ responseLBS status200 [(hSetCookie, "a=1; Path=/")] "set"
-  ["set-b"] -> respond $ responseLBS status200 [(hSetCookie, "b=2; Path=/")] "set"
+  ["set-cookie"] -> respond $ responseLBS status200 [("Set-Cookie", "token=abc; Path=/")] "set"
+  ["set-explicit"] -> respond $ responseLBS status200 [("Set-Cookie", "explicit=yes; Path=/")] "set"
+  ["set-a"] -> respond $ responseLBS status200 [("Set-Cookie", "a=1; Path=/")] "set"
+  ["set-b"] -> respond $ responseLBS status200 [("Set-Cookie", "b=2; Path=/")] "set"
   ["cookie"] -> respond $ responseLBS status200 [] . fromStrict $
     maybe "" id (lookup hCookie (requestHeaders requestValue))
   _ -> respond $ responseLBS status200 [] "ok"
@@ -228,7 +227,7 @@ retryCookieApp :: IORef Int -> Application
 retryCookieApp counter requestValue respond = do
   attempt <- atomicModifyIORef' counter (\value -> let next = value + 1 in (next, next))
   if attempt == 1
-    then respond $ responseLBS status503 [(hSetCookie, "gate=yes; Path=/")] "retry"
+    then respond $ responseLBS status503 [("Set-Cookie", "gate=yes; Path=/")] "retry"
     else if lookup hCookie (requestHeaders requestValue) == Just "gate=yes"
       then respond $ responseLBS status200 [] "ok"
       else respond $ responseLBS status400 [] "missing retry cookie"
