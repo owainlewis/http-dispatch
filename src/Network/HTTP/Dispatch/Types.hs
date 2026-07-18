@@ -1,79 +1,49 @@
-{-# LANGUAGE OverloadedStrings #-}
--- |
--- Module      : Network.HTTP.Dispatch.Request
--- Copyright   : (c) 2016 Owain Lewis
---
--- License     : BSD-style
--- Maintainer  : owain@owainlewis.com
--- Stability   : experimental
--- Portability : GHC
---
--- HTTP request type
---
+-- | Public data types. Request and client constructors remain opaque so their
+-- internals can evolve without breaking user code.
 module Network.HTTP.Dispatch.Types
-    ( RequestMethod(..)
-    , HTTPRequest(..)
-    , HTTPResponse(..)
-    , Header
-    , Headers
-    , Url
-    , header
-    , transformHeaders
-    , withHeader
-    , withHeaders
-    , withBody
-    , withMethod
-    ) where
+  ( Client
+  , ClientOptions (managerSettings, useProxyEnvironment, useCookieJar)
+  , defaultClientOptions
+  , HTTPRequest
+  , HTTPResponse (..)
+  , HTTPError (..)
+  , RequestMethod (..)
+  , RetryPolicy (..)
+  , defaultRetryPolicy
+  , StatusPolicy (..)
+  , Header
+  , Headers
+  , Url
+  , Proxy (..)
+  , CookieJar
+  , BodyReader
+  , Manager
+  , ManagerSettings
+  , RequestBody (..)
+  , Part
+  , resposeBody
+  ) where
 
-import Prelude hiding (head)
+import Network.HTTP.Client
+  ( BodyReader
+  , CookieJar
+  , Manager
+  , ManagerSettings
+  , Proxy (..)
+  , RequestBody (..)
+  )
+import Network.HTTP.Client.MultipartFormData (Part)
+import Network.HTTP.Types (Header)
 
-import qualified Data.ByteString       as S
-import qualified Data.ByteString.Char8 as SC
+import Network.HTTP.Dispatch.Internal
 
-type Header  = (S.ByteString, S.ByteString)
-
+-- | Ordered request or response headers. Duplicate names are preserved.
 type Headers = [Header]
 
+-- | Absolute HTTP or HTTPS URL accepted by request constructors.
 type Url = String
 
-data RequestMethod =
-    HEAD
-  | GET
-  | POST
-  | PUT
-  | PATCH
-  | DELETE
-  | TRACE
-  | OPTIONS
-  | CONNECT deriving ( Eq, Ord, Show )
-
-data HTTPRequest = HTTPRequest {
-    method  :: RequestMethod
-  , url     :: String
-  , headers :: [(S.ByteString, S.ByteString)]
-  , body    :: Maybe S.ByteString
-} deriving ( Eq, Ord, Show )
-
-data HTTPResponse = HTTPResponse {
-    responseStatus  :: Int
-  , responseHeaders :: [(S.ByteString, S.ByteString)]
-  , resposeBody    :: S.ByteString
-} deriving ( Eq, Show )
-
-header :: String -> String -> (S.ByteString, S.ByteString)
-header k v = (SC.pack k , SC.pack v)
-
-transformHeaders :: [(String, String)] -> [(S.ByteString, S.ByteString)]
-transformHeaders = map (\(k,v) -> header k v)
-
-withHeader :: HTTPRequest -> (S.ByteString, S.ByteString) -> HTTPRequest
-withHeader req header = req { headers = header : (headers req) }
-
-withHeaders :: HTTPRequest -> [(S.ByteString, S.ByteString)] -> HTTPRequest
-withHeaders req headers = req { headers = headers }
-
-withBody :: HTTPRequest -> S.ByteString -> HTTPRequest
-withBody req body = req { body = Just body }
-
-withMethod :: HTTPRequest -> RequestMethod -> HTTPRequest
-withMethod req method = req { method = method }
+-- | Compatibility alias for the misspelled v1 accessor.
+{-# DEPRECATED resposeBody "Use responseBody." #-}
+resposeBody :: HTTPResponse body -> body
+resposeBody = responseBody

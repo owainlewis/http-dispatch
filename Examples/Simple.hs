@@ -1,8 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Network.HTTP.Dispatch.Examples.Simple where
 
-import           Network.HTTP.Dispatch as Dispatch
+module Main (main) where
 
-example1 =
-  let req = Dispatch.get "http://google.com" in
-  Dispatch.http req
+import qualified Data.ByteString.Char8 as B8
+import Data.Function ((&))
+import Network.HTTP.Dispatch
+
+main :: IO ()
+main = do
+  client <- newClient
+  response <- send client $
+    get "https://httpbin.org/anything"
+      & queryParam "library" "http-dispatch"
+      & withHeader ("Accept", "application/json")
+      & withTimeout 10000000
+      & expect2xx
+  B8.putStrLn (responseBody response)
